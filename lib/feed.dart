@@ -1,48 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class Feed extends StatelessWidget {
-  final List<String> posts = [
-    "https://source.unsplash.com/random/1",
-    "https://source.unsplash.com/random/2",
-    "https://source.unsplash.com/random/3",
-  ];
+  Feed({super.key});
+
+  // Placeholder post data
+  final List<Map<String, String>> posts = List.generate(5, (index) => {
+        "image": "https://ih1.redbubble.net/image.2148260610.1173/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.jpg",
+        "user": "User ${index + 1}",
+        "caption": "This is a placeholder caption for post ${index + 1}.",
+      });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(" Feed")),
+      appBar: AppBar(title: const Text("Feed")),
       body: ListView.builder(
         itemCount: posts.length,
         itemBuilder: (context, index) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // User info
+              // User Info Placeholder
               ListTile(
                 leading: const CircleAvatar(
-                  backgroundImage: NetworkImage("https://source.unsplash.com/random/user"),
+                  backgroundImage:
+                      NetworkImage("https://source.unsplash.com/random/user"),
                 ),
-                title: Text("User ${index + 1}"),
-                subtitle: const Text("2 hours ago"),
+                title: Text(posts[index]["user"]!),
+                subtitle: const Text("3 hours ago"),
                 trailing: const Icon(Icons.more_vert),
               ),
 
-              // Post Image
-              CachedNetworkImage(
-                imageUrl: posts[index],
-                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-                fit: BoxFit.cover,
+              // Post Image Placeholder
+              Container(
                 width: double.infinity,
                 height: 300,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(posts[index]["image"]!),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
 
-              // Like, Comment, Share Buttons
+              // Like, Comment, Share Icons (Static for now)
               const Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Icon(Icons.favorite_border),
                     SizedBox(width: 16),
@@ -53,14 +57,15 @@ class Feed extends StatelessWidget {
                 ),
               ),
 
-              // Caption
+              // Caption Placeholder
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
-                  "User ${index + 1}: This is a sample caption for the post!",
+                  posts[index]["caption"]!,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
+
               const SizedBox(height: 10),
             ],
           );
