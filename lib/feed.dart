@@ -38,7 +38,13 @@ class Feed extends StatelessWidget {
                 ),
               ),
             ),
-
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                posts[index]["caption"]!,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
             const Padding(
               padding: EdgeInsets.all(8.0),
               child: Row(
@@ -52,13 +58,7 @@ class Feed extends StatelessWidget {
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                posts[index]["caption"]!,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
+            
 
             const SizedBox(height: 10),
           ],
