@@ -43,3 +43,5 @@ app.*.map.json
 /android/app/release
 
 /macos/Flutter/GeneratedPluginRegistrant.swift
+/linux/flutter/
+/windows/flutter/
