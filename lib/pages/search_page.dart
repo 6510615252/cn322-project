@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,6 +22,7 @@ class _SearchPageState extends State<SearchPage> {
       });
       return;
     }
+     // ignore: unnecessary_null_comparison
      FirebaseFirestore firestore = FirebaseFirestore.instance.databaseId != null
       ? FirebaseFirestore.instanceFor(
           app: Firebase.app(),
@@ -28,6 +31,7 @@ class _SearchPageState extends State<SearchPage> {
       : FirebaseFirestore.instance;
     final querySnapshot = await firestore.collection("User")
         .where('name', isGreaterThanOrEqualTo: query)
+        // ignore: prefer_interpolation_to_compose_strings
         .where('name', isLessThanOrEqualTo: query + '\uf8ff') // ใช้เพื่อค้นหาตามตัวอักษร
         .get();
     if (querySnapshot.docs.isEmpty) {
