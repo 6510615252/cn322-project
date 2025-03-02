@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:outstragram/auth.dart';
+import 'package:outstragram/pages/search_page.dart';
 
 
 class HomePage extends StatelessWidget {
@@ -28,6 +29,18 @@ class HomePage extends StatelessWidget {
       child: const Text('Sign out'),);
   }
 
+
+  Widget _searchButton(BuildContext context) {
+  return ElevatedButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SearchPage()),
+      );
+    },
+    child: const Text("Search Users"),
+  );
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,6 +56,7 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             _userUID(),
+             _searchButton(context),
             _signOutButton()
             ],
           ),
