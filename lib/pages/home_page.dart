@@ -3,8 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:outstragram/auth.dart';
 
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   HomePage({super.key});
+
+  User? user = Auth().currentUser;
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
 
   final User? user = Auth().currentUser;
 
@@ -23,9 +29,14 @@ class HomePage extends StatelessWidget {
   Widget _signOutButton() {
     return ElevatedButton(
       onPressed: () async {
-      await Auth().signOut();
-    }, 
-      child: const Text('Sign out'),);
+        await Auth().signOut();
+        setState(() {});
+      },
+      child: Text("Sign Out"),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.grey,
+      ),
+    );
   }
 
   @override
