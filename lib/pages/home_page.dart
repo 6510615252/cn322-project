@@ -9,7 +9,7 @@ class HomePage extends StatelessWidget {
   final User? user = Auth().currentUser;
 
   Future<void> signOut() async {
-    await Auth().signOut;
+    await Auth().signOut();
   }
 
   Widget _title() {
@@ -22,7 +22,9 @@ class HomePage extends StatelessWidget {
 
   Widget _signOutButton() {
     return ElevatedButton(
-      onPressed: signOut, 
+      onPressed: () async {
+      await Auth().signOut();
+    }, 
       child: const Text('Sign out'),);
   }
 
