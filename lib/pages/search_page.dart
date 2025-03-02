@@ -1,6 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:async';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -12,7 +12,6 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> searchResults = [];
-  Timer? _debounce;
 
   Future<void> searchUsers(String query) async {
     if (query.isEmpty) {
@@ -21,40 +20,29 @@ class _SearchPageState extends State<SearchPage> {
       });
       return;
     }
-
-    // แก้ไขตรงนี้: อ้างอิง subcollection ที่ถูกต้อง
-    final usersCollection = FirebaseFirestore.instance
-        .collection('dbmain')
-        .doc('TestUser')
-        .collection('User');
-
-    try {
-      final querySnapshot = await usersCollection
-          .where('name', isGreaterThanOrEqualTo: query)
-          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
-          .get();
-
-      if (querySnapshot.docs.isEmpty) {
-        print('No data found');
-      } else {
-        print('Found ${querySnapshot.docs.length} results');
-        for (var doc in querySnapshot.docs) {
-          print(doc.data());
-        }
+     FirebaseFirestore firestore = FirebaseFirestore.instance.databaseId != null
+      ? FirebaseFirestore.instanceFor(
+          app: Firebase.app(),
+          databaseId: 'dbmain',
+        )
+      : FirebaseFirestore.instance;
+    final querySnapshot = await firestore.collection("User")
+        .where('name', isGreaterThanOrEqualTo: query)
+        .where('name', isLessThanOrEqualTo: query + '\uf8ff') // ใช้เพื่อค้นหาตามตัวอักษร
+        .get();
+    if (querySnapshot.docs.isEmpty) {
+      print('No data found');
+    } else {
+      print('Found ${querySnapshot.docs.length} results');
+      for (var doc in querySnapshot.docs) {
+        print(doc.data()); // แสดงข้อมูลใน document
       }
-
-      List<Map<String, dynamic>> results =
-          querySnapshot.docs.map((doc) => doc.data()).toList();
-
-      setState(() {
-        searchResults = results;
-      });
-    } catch (e) {
-      print('Error searching users: $e'); // เพิ่ม print(e)
-      setState(() {
-        searchResults = [];
-      });
     }
+    List<Map<String, dynamic>> results = querySnapshot.docs.map((doc) => doc.data()).toList();
+
+    setState(() {
+      searchResults = results;
+    });
   }
 
   @override
@@ -67,12 +55,7 @@ class _SearchPageState extends State<SearchPage> {
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               controller: _searchController,
-              onChanged: (value) {
-                if (_debounce?.isActive ?? false) _debounce?.cancel();
-                _debounce = Timer(const Duration(milliseconds: 500), () {
-                  searchUsers(value);
-                });
-              },
+              onChanged: searchUsers,
               decoration: InputDecoration(
                 labelText: "Search by Name",
                 suffixIcon: IconButton(
@@ -88,7 +71,8 @@ class _SearchPageState extends State<SearchPage> {
               itemBuilder: (context, index) {
                 final user = searchResults[index];
                 return ListTile(
-                  title: Text(user['name']), // แสดงเฉพาะชื่อ
+                  
+                  title: Text(user['name']),
                 );
               },
             ),
