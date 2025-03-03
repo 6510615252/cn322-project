@@ -34,14 +34,7 @@ class _SearchPageState extends State<SearchPage> {
         // ignore: prefer_interpolation_to_compose_strings
         .where('name', isLessThanOrEqualTo: query + '\uf8ff') // ใช้เพื่อค้นหาตามตัวอักษร
         .get();
-    if (querySnapshot.docs.isEmpty) {
-      print('No data found');
-    } else {
-      print('Found ${querySnapshot.docs.length} results');
-      for (var doc in querySnapshot.docs) {
-        print(doc.data()); // แสดงข้อมูลใน document
-      }
-    }
+    
     List<Map<String, dynamic>> results = querySnapshot.docs.map((doc) => doc.data()).toList();
 
     setState(() {

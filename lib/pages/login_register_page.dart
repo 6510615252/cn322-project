@@ -15,6 +15,8 @@ class _LoginPageState extends State<LoginPage> {
 
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
+  final TextEditingController _controllerUsername = TextEditingController();
+
 
   Future<void> signInWithEmailAndPassword() async {
     try {
@@ -30,33 +32,30 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> createUserWithEmailAndPassword() async {
-     try {
-      await Auth().createUserWithEmailAndPassword(
-        email: _controllerEmail.text, 
-        password: _controllerPassword.text
-      );
-    } on FirebaseAuthException catch (e) {
-      setState(() {
-        errorMessage = e.message;
-      });
-    }
+  try {
+    await Auth().createUserWithEmailAndPassword(
+      email: _controllerEmail.text,
+      password: _controllerPassword.text,
+      username: _controllerUsername.text, // เพิ่ม username
+    );
+  } on FirebaseAuthException catch (e) {
+    setState(() {
+      errorMessage = e.message;
+    });
   }
+}
 
   Widget _title() {
     return const Text("Firebase Auth");
   }
 
-  Widget _entryField(
-    String title,
-    TextEditingController controller,
-    ) {
-      return TextField(
-        controller:  controller,
-        decoration: InputDecoration(
-          labelText: title,
-        ),
-      );
-  }
+ Widget _entryField(String title, TextEditingController controller) {
+  return TextField(
+    controller: controller,
+    decoration: InputDecoration(labelText: title),
+    
+  );
+}
 
   Widget _errorMessage() {
     return Text(errorMessage == ''? '': 'Humm? $errorMessage');
@@ -92,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            if (!isLogin) _entryField("Username", _controllerUsername),
             _entryField("email", _controllerEmail),
             _entryField("password", _controllerPassword),
             _errorMessage(),
