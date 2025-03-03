@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'pages/feed.dart';
 import 'pages/ProfilePage.dart';
-import 'pages/SearchPage.dart';
+import 'pages/Search_Page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:outstragram/widget_tree.dart';
+import 'firebase_options.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -18,7 +27,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MainScreen(),
+      home: const WidgetTree(),
     );
   }
 }
@@ -35,7 +44,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     Feed(),
-    Search(),
+    SearchPage(),
     ProfilePage(),
   ];
 

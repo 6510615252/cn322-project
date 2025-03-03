@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "184813617870",
+    "project_id": "cn322-3a8fa",
+    "storage_bucket": "cn322-3a8fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184813617870:android:dd240ba9a3f7718540069f",
+        "android_client_info": {
+          "package_name": "com.example.outstragram"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8vbONZ9YQplwtjQX5x5QKOPsuaHMnf-g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

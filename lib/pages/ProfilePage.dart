@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:outstragram/auth.dart';
 
 class ProfilePage extends StatelessWidget {
   @override
@@ -9,8 +10,10 @@ class ProfilePage extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {},
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+        await Auth().signOut();
+            }
           )
         ],
       ),
