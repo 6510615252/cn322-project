@@ -46,6 +46,11 @@ app.*.map.json
 /linux/flutter/
 /windows/flutter/
 
+<<<<<<< HEAD
 .dart_tool/
 .packages
 .pubspec.lock 
+=======
+# api keys
+.env
+>>>>>>> main
