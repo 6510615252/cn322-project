@@ -49,6 +49,7 @@ class DefaultFirebaseOptions {
     authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN']!,
     storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
     measurementId: dotenv.env['FIREBASE_WEB_MEASUREMENT_ID']!,
+    databaseURL: dotenv.env['FIREBASE_URL']!,
   );
 
   static FirebaseOptions _android() => FirebaseOptions(
@@ -57,6 +58,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
     projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
     storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+    databaseURL: dotenv.env['FIREBASE_URL']!,
   );
 
   static FirebaseOptions _ios() => FirebaseOptions(
@@ -66,6 +68,7 @@ class DefaultFirebaseOptions {
     projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
     storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
     iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID']!,
+    databaseURL: dotenv.env['FIREBASE_URL']!,
   );
 
   static FirebaseOptions _macos() => FirebaseOptions(
@@ -75,6 +78,7 @@ class DefaultFirebaseOptions {
     projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
     storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
     iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID']!,
+    databaseURL: dotenv.env['FIREBASE_URL']!,
   );
 
   static FirebaseOptions _windows() => FirebaseOptions(
@@ -85,5 +89,6 @@ class DefaultFirebaseOptions {
     storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
     authDomain: 'cn322-3a8fa.firebaseapp.com',
     measurementId: 'G-Q56DK26QVF',
+    databaseURL: dotenv.env['FIREBASE_URL']!,
   );
 }
