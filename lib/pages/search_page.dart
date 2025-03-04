@@ -1,8 +1,8 @@
-// ignore_for_file: avoid_print
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:outstragram/pages/ProfilePage.dart';
+import 'ProfilePage.dart'; // Import หน้าโปรไฟล์ที่เราจะสร้าง
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -22,20 +22,23 @@ class _SearchPageState extends State<SearchPage> {
       });
       return;
     }
-     // ignore: unnecessary_null_comparison
-     FirebaseFirestore firestore = FirebaseFirestore.instance.databaseId != null
+    FirebaseFirestore firestore = FirebaseFirestore.instance.databaseId != null
       ? FirebaseFirestore.instanceFor(
           app: Firebase.app(),
           databaseId: 'dbmain',
         )
       : FirebaseFirestore.instance;
+
     final querySnapshot = await firestore.collection("User")
         .where('name', isGreaterThanOrEqualTo: query)
-        // ignore: prefer_interpolation_to_compose_strings
-        .where('name', isLessThanOrEqualTo: query + '\uf8ff') // ใช้เพื่อค้นหาตามตัวอักษร
+        .where('name', isLessThanOrEqualTo: query + '\uf8ff') 
         .get();
-    
-    List<Map<String, dynamic>> results = querySnapshot.docs.map((doc) => doc.data()).toList();
+
+    List<Map<String, dynamic>> results = querySnapshot.docs.map((doc) {
+      var data = doc.data();
+      data['uid'] = doc.id; // เพิ่ม UID ของ user ลงใน map
+      return data;
+    }).toList();
 
     setState(() {
       searchResults = results;
@@ -68,8 +71,19 @@ class _SearchPageState extends State<SearchPage> {
               itemBuilder: (context, index) {
                 final user = searchResults[index];
                 return ListTile(
-                  
                   title: Text(user['name']),
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(user['user_pic'] ?? 'https://via.placeholder.com/150'),
+                  ),
+                  onTap: () {
+                    // นำไปหน้าโปรไฟล์ของ user ที่ถูกค้นหา
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfilePage(uid: user['uid']),
+                      ),
+                    );
+                  },
                 );
               },
             ),
