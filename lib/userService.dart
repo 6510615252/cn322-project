@@ -4,19 +4,18 @@ import 'package:firebase_core/firebase_core.dart';
 
 class UserService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore firestore =
+      FirebaseFirestore.instance.databaseId != null
+          ? FirebaseFirestore.instanceFor(
+              app: Firebase.app(),
+              databaseId: 'dbmain',
+            )
+          : FirebaseFirestore.instance;
 
   User? get currentUser => _firebaseAuth.currentUser;
 
   // ดึงข้อมูลผู้ใช้จาก Firestore ตาม UID
   Future<Map<String, dynamic>?> fetchUserData(String userId) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance.databaseId != null
-        ? FirebaseFirestore.instanceFor(
-            app: Firebase.app(),
-            databaseId: 'dbmain',
-          )
-        : FirebaseFirestore.instance;
-
     try {
       DocumentSnapshot doc =
           await firestore.collection('User').doc(userId).get();
