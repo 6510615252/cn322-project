@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
   return TextField(
     controller: controller,
     decoration: InputDecoration(labelText: title),
-    
+    obscureText: title.toLowerCase() == 'password'
   );
 }
 
