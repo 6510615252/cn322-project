@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:outstragram/auth.dart';
-import 'package:outstragram/pages/search_page.dart';
-
+import 'package:outstragram/services/authService.dart';
+import 'package:outstragram/screens/search_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
 
-  User? user = Auth().currentUser;
+  User? user = Authservice().currentUser;
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
 
-  final User? user = Auth().currentUser;
+  final User? user = Authservice().currentUser;
 
   Future<void> signOut() async {
-    await Auth().signOut();
+    await Authservice().signOut();
   }
 
   Widget _title() {
@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
   Widget _signOutButton() {
     return ElevatedButton(
       onPressed: () async {
-        await Auth().signOut();
+        await Authservice().signOut();
         setState(() {});
       },
       child: Text("Sign Out"),

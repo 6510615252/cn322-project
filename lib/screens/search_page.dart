@@ -1,8 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:outstragram/pages/ProfilePage.dart';
-import 'ProfilePage.dart'; // Import หน้าโปรไฟล์ที่เราจะสร้าง
+import 'ProfilePage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});

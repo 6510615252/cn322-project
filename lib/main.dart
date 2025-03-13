@@ -1,13 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'pages/feed.dart';
-import 'pages/ProfilePage.dart';
-import 'pages/Search_Page.dart';
+import 'package:outstragram/services/storage_service.dart';
+import 'screens/feed.dart';
+import 'screens/ProfilePage.dart';
+import 'screens/Search_Page.dart';
+import 'screens/new_post_page.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:outstragram/widget_tree.dart';
+import 'package:outstragram/widgets/widget_tree.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:provider/provider.dart';
 
 
 Future<void> main() async {
@@ -16,7 +17,12 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => StorageService()),
+      ],
+      child: const MyApp(),
+    ),);
 }
 
 class MyApp extends StatelessWidget {
@@ -47,6 +53,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     Feed(),
+    NewPostPage(),
     SearchPage(),
     ProfilePage(),
   ];
@@ -69,6 +76,10 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Feed',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'New Post',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.search),

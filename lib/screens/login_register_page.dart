@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../auth.dart';
+import '../services/authService.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> signInWithEmailAndPassword() async {
     try {
-      await Auth().signInWithEmailAndPassword(
+      await Authservice().signInWithEmailAndPassword(
         email: _controllerEmail.text, 
         password: _controllerPassword.text
       );
@@ -33,10 +34,9 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> createUserWithEmailAndPassword() async {
   try {
-    await Auth().createUserWithEmailAndPassword(
+    await Authservice().createUserWithEmailAndPassword(
       email: _controllerEmail.text,
       password: _controllerPassword.text,
-      username: _controllerUsername.text, // เพิ่ม username
     );
   } on FirebaseAuthException catch (e) {
     setState(() {
@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
 }
 
   Future<void> signInWithGoogle() async {
-    final userCredential = await Auth().signInWithGoogle();
+    final userCredential = await Authservice().signInWithGoogle();
     if (userCredential == null) {
       setState(() {
         errorMessage = "Google Sign-In failed.";
