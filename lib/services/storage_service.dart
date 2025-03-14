@@ -83,9 +83,6 @@ class StorageService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Uploads an image to Firebase Storage
-  
-
   /// Extracts the file path from a Firebase Storage URL
   String _extractPathFromUrl(String url) {
     Uri uri = Uri.parse(url);

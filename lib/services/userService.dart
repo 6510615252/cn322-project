@@ -22,47 +22,56 @@ class UserService {
   );
 
   User? get currentUser => _firebaseAuth.currentUser;
+  late final String profileUid;
+
+  UserService() {
+    profileUid = currentUser?.uid ?? '';
+  }
 
   Future<Widget> displayUserProfilePic(String userPicPath) async {
-  try {
-    // Fetch the image URL from Firebase Storage using the given path
-    String downloadUrl = await FirebaseStorage.instance
-        .ref(userPicPath)
-        .getDownloadURL();
+    try {
+      // Fetch the image URL from Firebase Storage using the given path
+      String downloadUrl =
+          await FirebaseStorage.instance.ref(userPicPath).getDownloadURL();
 
-    // Display the image using the fetched URL
-    return Image.network(downloadUrl);
-  } catch (e) {
-    print("❌ Error loading image: $e");
-    // Return a default image if there was an error
-    return Image.asset('assets/default_profile_pic.png');
+      // Display the image using the fetched URL
+      return Image.network(downloadUrl);
+    } catch (e) {
+      print("❌ Error loading image: $e");
+      // Return a default image if there was an error
+      return Image.asset('assets/default_profile_pic.png');
+    }
   }
-}
-
 
   // ฟังก์ชันสำหรับอัปโหลดรูปภาพ
   Future<String> uploadProfilePic(Uint8List imageBytes, String fileName) async {
     try {
-      // สร้าง Reference สำหรับ Firebase Storage
-      Reference storageRef = _firebaseStorage.ref().child('user_pic/$fileName');
-
-      // อัปโหลดไฟล์ไปยัง Firebase Storage
-      UploadTask uploadTask = storageRef.putData(imageBytes);
-
-      // รอการอัปโหลดเสร็จสิ้น
-      TaskSnapshot snapshot = await uploadTask.whenComplete(() => null);
-
-      // ดึง URL ของไฟล์ที่อัปโหลดสำเร็จ
-      String downloadURL = await snapshot.ref.getDownloadURL();
-      return downloadURL; // ส่ง URL ของไฟล์ที่อัปโหลด
+      Reference ref = _firebaseStorage.ref('user_pic/$fileName');
+      await ref.putData(imageBytes);
+      saveUserPic(profileUid, 'user_pic/$fileName');
+      return await ref.getDownloadURL();
     } catch (e) {
-      print("❌ Error uploading image: $e");
+      throw Exception("Upload failed: $e");
+    }
+  }
+
+  // 🔹 สร้างหรืออัปเดตข้อมูลผู้ใช้
+  Future<void> updateUserName({
+    required String uid,
+    required String name,
+  }) async {
+    try {
+      await _firestore.collection("User").doc(uid).set({
+        'name': name,
+      }, SetOptions(merge: true)); // ✅ ใช้ merge เพื่ออัปเดตเฉพาะฟิลด์ที่ส่งมา
+    } catch (e) {
+      print("❌ Error updating profile: $e");
       throw e;
     }
   }
 
   // ฟังก์ชันเพื่อบันทึก path รูปใน Firestore
-  Future<void> saveUserProfilePicToFirestore(
+  Future<void> saveUserPic(
       String userId, String filePath) async {
     try {
       // บันทึก path ของรูปภาพลงใน Firestore
@@ -72,22 +81,6 @@ class UserService {
     } catch (e) {
       print("❌ Error saving image path to Firestore: $e");
       throw e;
-    }
-  }
-
-  // ฟังก์ชันนี้ใช้เพื่ออัปโหลดและบันทึกข้อมูล
-  Future<void> uploadAndSaveUserProfilePic(
-      Uint8List imageBytes, String userId, String fileName) async {
-    try {
-      // อัปโหลดรูปภาพไปยัง Firebase Storage และรับ URL
-      String filePath = await uploadProfilePic(imageBytes, fileName);
-
-      // บันทึก URL หรือ path ของรูปภาพลงใน Firestore
-      await saveUserProfilePicToFirestore(userId, filePath);
-
-      print("✔️ Image uploaded and saved successfully!");
-    } catch (e) {
-      print("❌ Error uploading and saving profile pic: $e");
     }
   }
 
@@ -111,23 +104,6 @@ class UserService {
       'post': [],
       'user_pic': userPic ?? "user_pic/UserPicDef.jpg"
     });
-  }
-
-  // 🔹 สร้างหรืออัปเดตข้อมูลผู้ใช้
-  Future<void> updateUserProfile({
-    required String uid,
-    required String name,
-    required String userPic,
-  }) async {
-    try {
-      await _firestore.collection("User").doc(uid).set({
-        'name': name,
-        'user_pic': userPic.isNotEmpty ? userPic : "gs://default_profile.png",
-      }, SetOptions(merge: true)); // ✅ ใช้ merge เพื่ออัปเดตเฉพาะฟิลด์ที่ส่งมา
-    } catch (e) {
-      print("❌ Error updating profile: $e");
-      throw e;
-    }
   }
 
   // ดึงข้อมูลผู้ใช้จาก Firestore
@@ -161,7 +137,8 @@ class UserService {
           'following': [],
           'closefriend': [],
           'post': [],
-          'user_pic': "user_pic/UserPicDef.jpg"
+          'user_pic': "user_pic/UserPicDef.jpg",
+          'bio' : "",
         });
       }
     } catch (e) {

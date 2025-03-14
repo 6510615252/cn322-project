@@ -1,11 +1,12 @@
 import 'dart:typed_data';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html' as html;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:outstragram/services/userService.dart';
 import 'package:outstragram/screens/home_page.dart';
+import 'package:outstragram/widgets/widget_tree.dart';
 
 class ProfileSetupPage extends StatefulWidget {
   final User user;
@@ -21,7 +22,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   final UserService _userService = UserService();
 
   bool _isLoading = false;
-  String? _profilePicPath; // ✅ เพิ่มตัวแปรนี้
+  Uint8List? _imageBytes; // ✅ ใช้แทน Path เพื่อรองรับ Web & Mobile
 
   @override
   void dispose() {
@@ -34,8 +35,10 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
     if (image != null) {
+      final Uint8List imageBytes =
+          await image.readAsBytes(); // ✅ ใช้ได้ทั้ง Web & Mobile
       setState(() {
-        _profilePicPath = image.path; // ✅ เก็บ path ไว้ใช้งาน
+        _imageBytes = imageBytes;
       });
     }
   }
@@ -48,7 +51,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       return;
     }
 
-    if (_profilePicPath == null) {
+    if (_imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please select a profile picture")),
       );
@@ -58,18 +61,19 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Step 1: อัปโหลดรูปภาพไปยัง Firebase Storage และรับ URL
-      final Uint8List imageBytes = await File(_profilePicPath!).readAsBytes();
-      final String imageUrl = await _userService.uploadProfilePic(imageBytes, widget.user.uid + '_profile.jpg');
-
-      // Step 2: บันทึกข้อมูลผู้ใช้ใน Firestore
-      await _userService.updateUserProfile(
-        uid: widget.user.uid,
-        name: _nameController.text.trim(),
-        userPic: imageUrl, // ✅ ใช้ URL ของภาพที่อัปโหลด
+      // Step 1: อัปโหลดรูปภาพไปยัง Firebase Storage
+      final String imageUrl = await _userService.uploadProfilePic(
+        _imageBytes!,
+        '${widget.user.uid}_${DateTime.now().millisecondsSinceEpoch}',
       );
 
-      // Step 3: เปลี่ยนหน้าไปยัง HomePage
+      // Step 2: บันทึกข้อมูลผู้ใช้ใน Firestore
+      await _userService.updateUserName(
+        uid: widget.user.uid,
+        name: _nameController.text.trim(),
+      );
+
+      // Step 3: เปลี่ยนหน้าไปยัง home
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => HomePage()),
@@ -97,22 +101,24 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
               controller: _nameController,
               decoration: const InputDecoration(labelText: "Display Name"),
             ),
-
             const SizedBox(height: 20),
-            _profilePicPath == null
+            _imageBytes == null
                 ? ElevatedButton(
                     onPressed: _pickImage,
                     child: const Text("Pick Profile Picture"),
                   )
-                : (kIsWeb
-                    ? Image.network(_profilePicPath!)
-                    : Image.file(
-                        File(_profilePicPath!),
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      )),
-
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: kIsWeb
+                        ? Image.memory(_imageBytes!,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover) // ✅ ใช้สำหรับ Web
+                        : Image.memory(_imageBytes!,
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover), // ✅ ใช้สำหรับ Mobile
+                  ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _isLoading ? null : _saveUserData,

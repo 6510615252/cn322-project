@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:outstragram/main.dart';
+import 'package:outstragram/screens/home_page.dart';
 import 'package:outstragram/services/authService.dart';
 import 'package:outstragram/services/userService.dart';
 import 'package:outstragram/screens/login_register_page.dart';
@@ -40,7 +41,7 @@ class _WidgetTreeState extends State<WidgetTree> {
 
                 return MainScreen(); // ถ้ามี user อยู่แล้วให้ไปหน้า main
               } else {
-                return const Center(child: Text("Error loading user data"));
+                return HomePage();
               }
             },
           );
