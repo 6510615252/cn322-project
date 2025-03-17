@@ -120,13 +120,15 @@ class UserService {
   }
 
   // 🔹 สร้างหรืออัปเดตข้อมูลผู้ใช้
-  Future<void> updateUserName({
+  Future<void> updateUserNameAndBio({
     required String uid,
     required String name,
+    required String bio,
   }) async {
     try {
       await _firestore.collection("User").doc(uid).set({
         'name': name.toLowerCase().trim(),
+        'bio' : bio.trim(),
       }, SetOptions(merge: true)); // ✅ ใช้ merge เพื่ออัปเดตเฉพาะฟิลด์ที่ส่งมา
     } catch (e) {
       print("❌ Error updating profile: $e");

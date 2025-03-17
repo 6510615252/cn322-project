@@ -19,14 +19,16 @@ class ProfileSetupPage extends StatefulWidget {
 
 class _ProfileSetupPageState extends State<ProfileSetupPage> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
   final UserService _userService = UserService();
 
   bool _isLoading = false;
-  Uint8List? _imageBytes; // ✅ ใช้แทน Path เพื่อรองรับ Web & Mobile
+  Uint8List? _imageBytes; // ใช้แทน Path เพื่อรองรับ Web & Mobile
 
   @override
   void dispose() {
     _nameController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -36,7 +38,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
 
     if (image != null) {
       final Uint8List imageBytes =
-          await image.readAsBytes(); // ✅ ใช้ได้ทั้ง Web & Mobile
+          await image.readAsBytes(); // ใช้ได้ทั้ง Web & Mobile
       setState(() {
         _imageBytes = imageBytes;
       });
@@ -47,6 +49,13 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please enter a display name")),
+      );
+      return;
+    }
+
+    if (_bioController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter a bio")),
       );
       return;
     }
@@ -68,9 +77,10 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       );
 
       // Step 2: บันทึกข้อมูลผู้ใช้ใน Firestore
-      await _userService.updateUserName(
+      await _userService.updateUserNameAndBio(
         uid: widget.user.uid,
         name: _nameController.text.trim(),
+        bio: _bioController.text.trim(),
       );
 
       // Step 3: เปลี่ยนหน้าไปยัง home
@@ -100,6 +110,10 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: "Display Name"),
+            ),
+            TextField(
+              controller: _bioController,
+              decoration: const InputDecoration(labelText: "Your bio"),
             ),
             const SizedBox(height: 20),
             _imageBytes == null
