@@ -28,6 +28,70 @@ class UserService {
     profileUid = currentUser?.uid ?? '';
   }
 
+  Future<bool> isUserFollowing(String profileUid, String currentUid) async {
+    final currenUserData = await fetchUserData(currentUid);
+    return currenUserData?['following']?.contains(profileUid) ?? false;
+  }
+
+  Future<void> toggleFollowUser(String profileUid, String currentUid) async {
+    final userDoc = _firestore.collection('User').doc(profileUid);
+    final currentUserDoc = _firestore.collection('User').doc(currentUid);
+
+    // if userDoc private, TODO NA
+
+    // if userDoc Public
+    final currentUserData = await currentUserDoc.get();
+    List followers = currentUserData.data()?['following'] ?? [];
+
+    if (followers.contains(profileUid)) {
+      followers.remove(profileUid);
+    } else {
+      followers.add(profileUid);
+    }
+
+    await currentUserDoc.update({'following': followers});
+  }
+
+  Future<void> searchUsers(
+      String query, Function(List<Map<String, dynamic>>) updateResults) async {
+    query = query.toLowerCase().trim();
+    if (query.isEmpty) {
+      updateResults([]); // หาก query ว่าง ให้เคลียร์ผลลัพธ์
+      return;
+    }
+
+    final querySnapshot = await _firestore
+        .collection("User")
+        .where('name', isGreaterThanOrEqualTo: query)
+        .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+        .get();
+
+    List<Map<String, dynamic>> results = querySnapshot.docs.map((doc) {
+      var data = doc.data();
+      data['uid'] = doc.id; // เพิ่ม UID ของ user ลงใน map
+      return data;
+    }).toList();
+
+    updateResults(results); // ส่งค่าผลลัพธ์กลับไปยัง SearchPage
+  }
+
+  Future<String> getUserNameByUid(String uid) async {
+    try {
+      // ดึงข้อมูลจาก collection "User" โดยใช้ uid ของผู้โพสต์
+      DocumentSnapshot userDoc =
+          await _firestore.collection('User').doc(uid).get();
+
+      if (userDoc.exists) {
+        return userDoc['name'] ?? 'Unknown'; // ถ้าไม่พบ name ให้แสดง 'Unknown'
+      } else {
+        return 'Unknown';
+      }
+    } catch (e) {
+      print('Error fetching user name: $e');
+      return 'Unknown';
+    }
+  }
+
   Future<Widget> displayUserProfilePic(String userPicPath) async {
     try {
       // Fetch the image URL from Firebase Storage using the given path
@@ -62,7 +126,7 @@ class UserService {
   }) async {
     try {
       await _firestore.collection("User").doc(uid).set({
-        'name': name,
+        'name': name.toLowerCase().trim(),
       }, SetOptions(merge: true)); // ✅ ใช้ merge เพื่ออัปเดตเฉพาะฟิลด์ที่ส่งมา
     } catch (e) {
       print("❌ Error updating profile: $e");
@@ -71,8 +135,7 @@ class UserService {
   }
 
   // ฟังก์ชันเพื่อบันทึก path รูปใน Firestore
-  Future<void> saveUserPic(
-      String userId, String filePath) async {
+  Future<void> saveUserPic(String userId, String filePath) async {
     try {
       // บันทึก path ของรูปภาพลงใน Firestore
       await _firestore.collection("User").doc(userId).update({
@@ -98,7 +161,7 @@ class UserService {
     String? userPic,
   }) async {
     await _firestore.collection("User").doc(userId).set({
-      'name': username,
+      'name': username.toLowerCase().trim(),
       'closefriend': [],
       'following': [],
       'post': [],
@@ -138,7 +201,7 @@ class UserService {
           'closefriend': [],
           'post': [],
           'user_pic': "user_pic/UserPicDef.jpg",
-          'bio' : "",
+          'bio': "",
         });
       }
     } catch (e) {

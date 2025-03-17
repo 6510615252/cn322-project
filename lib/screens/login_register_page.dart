@@ -16,7 +16,6 @@ class _LoginPageState extends State<LoginPage> {
 
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
-  final TextEditingController _controllerUsername = TextEditingController();
 
 
   Future<void> signInWithEmailAndPassword() async {
@@ -115,7 +114,8 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            if (!isLogin) _entryField("Username", _controllerUsername),
+            if (!isLogin) Text("Register", style: TextStyle(fontSize: 20))
+            else Text("Login", style: TextStyle(fontSize: 20)),
             _entryField("email", _controllerEmail),
             _entryField("password", _controllerPassword),
             _errorMessage(),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:outstragram/services/postService.dart';
+import 'package:outstragram/services/userService.dart';
 
 class Feed extends StatelessWidget {
   final PostService postService = PostService();
+  final UserService userService = UserService();
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,18 @@ class Feed extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
                   title: Text(postData['context'] ?? 'No caption'),
-                  subtitle: Text('By ${postData['ownerId']}'),
+                  subtitle: FutureBuilder<String>(
+                    future: userService.getUserNameByUid(postData['ownerId']),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Text('Loading...');
+                      }
+                      if (snapshot.hasError) {
+                        return const Text('Error');
+                      }
+                      return Text('By ${snapshot.data ?? 'Unknown'}');
+                    },
+                  ),
                   leading: FutureBuilder<Widget>(
                     future: postService.displayPostPic(postData['pic'] ?? "user_pic/UserPicDef.jpg"),
                     builder: (context, snapshot) {
