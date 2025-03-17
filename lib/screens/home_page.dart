@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:outstragram/auth.dart';
-import 'package:outstragram/pages/search_page.dart';
-
+import 'package:outstragram/screens/profile_setup_page.dart';
+import 'package:outstragram/services/authService.dart';
+import 'package:outstragram/screens/search_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:outstragram/widgets/widget_tree.dart';
 
 class HomePage extends StatefulWidget {
   HomePage({super.key});
 
-  User? user = Auth().currentUser;
+  User? user = Authservice().currentUser;
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
 
-  final User? user = Auth().currentUser;
+  final User? user = Authservice().currentUser;
 
   Future<void> signOut() async {
-    await Auth().signOut();
+    await Authservice().signOut();
   }
 
   Widget _title() {
@@ -30,7 +32,7 @@ class _HomePageState extends State<HomePage> {
   Widget _signOutButton() {
     return ElevatedButton(
       onPressed: () async {
-        await Auth().signOut();
+        await Authservice().signOut();
         setState(() {});
       },
       child: Text("Sign Out"),
@@ -41,15 +43,15 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-  Widget _searchButton(BuildContext context) {
+  Widget _start(BuildContext context) {
   return ElevatedButton(
     onPressed: () {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const SearchPage()),
+        MaterialPageRoute(builder: (context) => const WidgetTree()),
       );
     },
-    child: const Text("Search Users"),
+    child: const Text("start"),
   );
 }
   @override
@@ -67,7 +69,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             _userUID(),
-             _searchButton(context),
+             _start(context),
             _signOutButton()
             ],
           ),

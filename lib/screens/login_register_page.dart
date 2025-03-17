@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../auth.dart';
+import '../services/authService.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,12 +16,11 @@ class _LoginPageState extends State<LoginPage> {
 
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
-  final TextEditingController _controllerUsername = TextEditingController();
 
 
   Future<void> signInWithEmailAndPassword() async {
     try {
-      await Auth().signInWithEmailAndPassword(
+      await Authservice().signInWithEmailAndPassword(
         email: _controllerEmail.text, 
         password: _controllerPassword.text
       );
@@ -33,10 +33,9 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> createUserWithEmailAndPassword() async {
   try {
-    await Auth().createUserWithEmailAndPassword(
+    await Authservice().createUserWithEmailAndPassword(
       email: _controllerEmail.text,
       password: _controllerPassword.text,
-      username: _controllerUsername.text, // เพิ่ม username
     );
   } on FirebaseAuthException catch (e) {
     setState(() {
@@ -46,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
 }
 
   Future<void> signInWithGoogle() async {
-    final userCredential = await Auth().signInWithGoogle();
+    final userCredential = await Authservice().signInWithGoogle();
     if (userCredential == null) {
       setState(() {
         errorMessage = "Google Sign-In failed.";
@@ -115,7 +114,8 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            if (!isLogin) _entryField("Username", _controllerUsername),
+            if (!isLogin) Text("Register", style: TextStyle(fontSize: 20))
+            else Text("Login", style: TextStyle(fontSize: 20)),
             _entryField("email", _controllerEmail),
             _entryField("password", _controllerPassword),
             _errorMessage(),
