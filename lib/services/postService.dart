@@ -79,7 +79,7 @@ class PostService {
       await _firestore.collection("post").doc(postId).set({
         'ownerId' : profileUid,
         'pic' : picPath,
-        'isPrivate' : false,
+        'isPrivate' : isPrivate,
         'context' : context,
       }, SetOptions(merge: true)); 
     } catch (e) {

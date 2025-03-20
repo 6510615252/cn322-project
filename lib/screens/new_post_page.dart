@@ -24,6 +24,7 @@ class _NewPostPageState extends State<NewPostPage> {
 
   bool _isLoading = false;
   Uint8List? _imageBytes;
+  bool _isPrivate = false;
 
   @override
   void dispose() {
@@ -42,6 +43,8 @@ class _NewPostPageState extends State<NewPostPage> {
       });
     }
   }
+
+
 
   Future<void> _createNewPost() async {
     if (_captionController.text.trim().isEmpty) {
@@ -72,7 +75,7 @@ class _NewPostPageState extends State<NewPostPage> {
       // Add post details to Firestore
       await _postService.addPost(
         postId: postId,
-        isPrivate: false,
+        isPrivate: _isPrivate,
         picPath: 'posts_pic/$postId',
         context: _captionController.text.trim(),
       );
@@ -103,16 +106,13 @@ class _NewPostPageState extends State<NewPostPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(
-              controller: _captionController,
-              decoration: const InputDecoration(labelText: "Caption"),
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 40),
             _imageBytes == null
                 ? ElevatedButton(
                     onPressed: _pickImage,
                     child: const Text("Pick an Image"),
                   )
+                  
                 : ClipRRect(
                     borderRadius: BorderRadius.circular(15),
                     child: kIsWeb
@@ -121,7 +121,22 @@ class _NewPostPageState extends State<NewPostPage> {
                         : Image.memory(_imageBytes!,
                             width: 150, height: 150, fit: BoxFit.cover),
                   ),
-            const SizedBox(height: 20),
+                  TextField(
+              controller: _captionController,
+              decoration: const InputDecoration(labelText: "Caption"),
+            ),
+            CheckboxListTile(
+              title: const Text("Close Friends Only"),
+              subtitle: const Text("Only close friends can see this post."),
+              value: _isPrivate,
+              onChanged: (bool? value) {
+                setState(() {
+                  _isPrivate = value ?? false;
+                });
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+            const SizedBox(height: 40),
             ElevatedButton(
               onPressed: _isLoading ? null : _createNewPost,
               child: _isLoading
