@@ -28,21 +28,35 @@ class Feed extends StatelessWidget {
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final postData = posts[index];
+              final bool isPrivate = postData['isPrivate'] ?? false;
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
                   title: Text(postData['context'] ?? 'No caption'),
-                  subtitle: FutureBuilder<String>(
-                    future: userService.getUserNameByUid(postData['ownerId']),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Text('Loading...');
-                      }
-                      if (snapshot.hasError) {
-                        return const Text('Error');
-                      }
-                      return Text('By ${snapshot.data ?? 'Unknown'}');
-                    },
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FutureBuilder<String>(
+                        future: userService.getUserNameByUid(postData['ownerId']),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Text('Loading...');
+                          }
+                          if (snapshot.hasError) {
+                            return const Text('Error');
+                          }
+                          return Text('By ${snapshot.data ?? 'Unknown'}');
+                        },
+                      ),
+                      if (isPrivate) 
+                        const Text(
+                          "Close Friend Only", 
+                          style: TextStyle(
+                            color: Colors.red, 
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                    ],
                   ),
                   leading: FutureBuilder<Widget>(
                     future: postService.displayPostPic(postData['pic'] ?? "user_pic/UserPicDef.jpg"),

@@ -114,16 +114,35 @@ class PostService {
   }
 
   Future<List<Map<String, dynamic>>> fetchUserPosts(String uid) async {
-    final postSnapshot = await _firestore
-        .collection('post')
-        .where('ownerId', isEqualTo: uid)
-        .get();
+      final userRef = _firestore.collection('User').doc(uid);
+      final postRef = _firestore.collection('post');
 
-    return postSnapshot.docs.map((doc) => doc.data()).toList();
+      // ดึงข้อมูล user profile
+      final userSnap = await userRef.get();
+      final currentUserUid = _firebaseAuth.currentUser!.uid;
+
+      // ตรวจสอบว่า currentUser อยู่ใน closeFriend list หรือไม่
+      final bool isCloseFriend = (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
+
+      // ถ้าเป็น Close Friend ให้ดึงทุกโพสต์ ถ้าไม่ใช่ให้ดึงเฉพาะ isPrivate: false
+      Query query = postRef.where('ownerId', isEqualTo: uid);
+
+    if (currentUserUid != uid) {
+      if (isCloseFriend) {
+        // ถ้าเราเป็น closeFriend -> ดึงทั้ง public และ private
+        query = query.where('isPrivate', whereIn: [true, false]);
+      } else {
+        // ถ้าไม่ใช่ -> ดึงเฉพาะ public
+        query = query.where('isPrivate', isEqualTo: false);
+      }
+    }
+
+    final querySnapshot = await query.get();
+    return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
   }
 
   Future<List<Map<String, dynamic>>> fetchFollowingPosts() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
+    final currentUser = _firebaseAuth.currentUser;
     if (currentUser == null) return [];
 
     final userSnapshot = await _firestore.collection('User').doc(currentUser.uid).get();
