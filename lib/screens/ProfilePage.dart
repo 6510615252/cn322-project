@@ -27,7 +27,7 @@ class _ProfilePageState extends State<ProfilePage> {
     fetchUserData();
   }
 
-    Future<void> fetchUserData() async {
+  Future<void> fetchUserData() async {
     final data = await userService.fetchUserData(profileUid);
     if (data != null) {
       setState(() {
@@ -99,20 +99,24 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       Column(
                         children: [
-                          Text('${userData!['post']?.length ?? 0}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18)),
+                          FutureBuilder<int>(
+                            future: userService.countVisiblePosts(profileUid),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Text('Loading...');
+                              } else if (snapshot.hasError) {
+                                return const Text('Error');
+                              } else {
+                                return Text(
+                                  '${snapshot.data ?? 0}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                );
+                              }
+                            },
+                          ),
                           const Text('Posts'),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          Text('${userData!['followers']?.length ?? 0}',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 18)),
-                          const Text('Followers'),
-                        ],
-                      ),
+                        ]
+                      ), 
                       Column(
                         children: [
                           Text('${userData!['following']?.length ?? 0}',

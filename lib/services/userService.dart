@@ -210,4 +210,27 @@ class UserService {
       print("❌ Error saving user data: $e");
     }
   }
+
+  Future<int> countVisiblePosts(String uid) async {
+    final userRef = _firestore.collection('User').doc(uid);
+    final postRef = _firestore.collection('post');
+
+    final userSnap = await userRef.get();
+    final currentUserUid = _firebaseAuth.currentUser!.uid;
+
+    final bool isCloseFriend = (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
+
+    Query query = postRef.where('ownerId', isEqualTo: uid);
+
+    if (currentUserUid == uid || isCloseFriend) {
+      query = query.where('isPrivate', whereIn: [true, false]);
+    } else {
+      query = query.where('isPrivate', isEqualTo: false);
+    }
+
+    final AggregateQuerySnapshot snapshot = await query.count().get();
+    final postCount = snapshot.count;
+    
+    return Future.value(postCount);
+  }
 }
