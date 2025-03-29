@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Flutter Navbar Demo',
       theme: ThemeData(
+        scaffoldBackgroundColor: Color(0xFFF6F1DE),
         primarySwatch: Colors.blue,
       ),
       home: const WidgetTree(),
@@ -66,12 +67,18 @@ class _MainScreenState extends State<MainScreen> {
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
+
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
+          
         },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Color(0xFF8AB2A6),
+        selectedItemColor: Colors.white, // สีไอคอนและข้อความที่ถูกเลือก
+        unselectedItemColor: const Color.fromARGB(255, 102, 100, 100),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
