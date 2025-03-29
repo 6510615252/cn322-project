@@ -91,7 +91,15 @@ class UserService {
       return 'Unknown';
     }
   }
-
+    Future<String> getUserBioByUid(String uid) async {
+    try {
+      DocumentSnapshot userDoc = await _firestore.collection('User').doc(uid).get();
+      return userDoc['bio'] ?? 'No bio available'; // ถ้าไม่มี bio ให้แสดงข้อความเริ่มต้น
+    } catch (e) {
+      return 'No bio available'; // กัน error
+    }
+  }
+  
   Future<Widget> displayUserProfilePic(String userPicPath) async {
     try {
       // Fetch the image URL from Firebase Storage using the given path
@@ -233,4 +241,5 @@ class UserService {
     
     return Future.value(postCount);
   }
+  
 }

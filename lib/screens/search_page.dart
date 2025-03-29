@@ -67,6 +67,15 @@ class _SearchPageState extends State<SearchPage> {
                       );
                     },
                   ),
+                  subtitle: FutureBuilder<String>(
+                    future: userService.getUserBioByUid(user['uid']), // เรียกฟังก์ชันดึง bio
+                    builder: (context, bioSnapshot) {
+                      if (bioSnapshot.connectionState == ConnectionState.waiting) {
+                        return const Text('Loading bio...');
+                      }
+                      return Text(bioSnapshot.data ?? 'No bio available'); // ถ้าไม่มี bio ให้แสดงข้อความเริ่มต้น
+                    },
+                  ),
                   onTap: () {
                     // นำไปหน้าโปรไฟล์ของ user ที่ถูกค้นหา
                     Navigator.push(
