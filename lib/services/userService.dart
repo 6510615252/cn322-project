@@ -75,6 +75,8 @@ class UserService {
     updateResults(results); // ส่งค่าผลลัพธ์กลับไปยัง SearchPage
   }
 
+  
+
   Future<String> getUserNameByUid(String uid) async {
     try {
       // ดึงข้อมูลจาก collection "User" โดยใช้ uid ของผู้โพสต์
@@ -241,5 +243,26 @@ class UserService {
     
     return Future.value(postCount);
   }
-  
+   Future<List<String>> getCloseFriends(String uid) async {
+    try {
+      // ดึงข้อมูลของ user จาก Firestore โดยใช้ uid
+      DocumentSnapshot userDoc = await _firestore.collection('User').doc(uid).get();
+
+      // ตรวจสอบว่า key 'closeFriends' มีอยู่ใน document หรือไม่
+      List<String> closeFriendsUid = List<String>.from(userDoc['closefriend'] ?? []);
+      
+      // ดึงชื่อจาก UID ของ closefriends โดยใช้ getUserNameByUid()
+      List<String> closeFriendsNames = [];
+      for (String closeFriendUid in closeFriendsUid) {
+        String name = await getUserNameByUid(closeFriendUid);
+        closeFriendsNames.add(name);
+      }
+
+      return closeFriendsNames;
+    }
+   catch (e) {
+    print("Error fetching close friends names: $e");
+    return [];
+  }
+  }
 }

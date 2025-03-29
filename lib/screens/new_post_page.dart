@@ -5,14 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:outstragram/services/postService.dart';
+import 'package:outstragram/services/userService.dart';
 import 'package:outstragram/screens/home_page.dart';
 import 'package:outstragram/widgets/widget_tree.dart';
 
 class NewPostPage extends StatefulWidget {
   final String? uid;
-  final PostService userService = PostService();
+  
 
-  NewPostPage({super.key, String? uid}) : uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
+  NewPostPage({super.key, String? uid})
+      : uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
 
   @override
   _NewPostPageState createState() => _NewPostPageState();
@@ -21,6 +23,9 @@ class NewPostPage extends StatefulWidget {
 class _NewPostPageState extends State<NewPostPage> {
   final TextEditingController _captionController = TextEditingController();
   final PostService _postService = PostService();
+  final UserService _userService = UserService();
+  
+  List<String> _closeFriends = [];
 
   bool _isLoading = false;
   Uint8List? _imageBytes;
@@ -32,6 +37,18 @@ class _NewPostPageState extends State<NewPostPage> {
     super.dispose();
   }
 
+   @override
+  void initState() {
+    super.initState();
+    _loadCloseFriends();  // เรียกฟังก์ชันเพื่อดึงรายชื่อ Close Friends
+  }
+  
+  Future<void> _loadCloseFriends() async {
+    List<String> closeFriends = await _userService.getCloseFriends(widget.uid!);  // ดึงข้อมูลจาก userService
+    setState(() {
+      _closeFriends = closeFriends;  // เก็บรายชื่อ Close Friends
+    });
+  }
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -43,8 +60,6 @@ class _NewPostPageState extends State<NewPostPage> {
       });
     }
   }
-
-
 
   Future<void> _createNewPost() async {
     if (_captionController.text.trim().isEmpty) {
@@ -112,31 +127,88 @@ class _NewPostPageState extends State<NewPostPage> {
                     onPressed: _pickImage,
                     child: const Text("Pick an Image"),
                   )
-                  
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: kIsWeb
-                        ? Image.memory(_imageBytes!,
-                            width: 150, height: 150, fit: BoxFit.cover)
-                        : Image.memory(_imageBytes!,
-                            width: 150, height: 150, fit: BoxFit.cover),
+                : GestureDetector(
+                    onTap: _pickImage, // Allow user to tap to change the image
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: kIsWeb
+                          ? Image.memory(
+                              _imageBytes!,
+                              width: 150,
+                              height: 150,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.memory(
+                              _imageBytes!,
+                              width: 150,
+                              height: 150,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
                   ),
-                  TextField(
+            TextField(
               controller: _captionController,
               decoration: const InputDecoration(labelText: "Caption"),
+              
             ),
-            CheckboxListTile(
-              title: const Text("Close Friends Only"),
-              subtitle: const Text("Only close friends can see this post."),
-              value: _isPrivate,
-              onChanged: (bool? value) {
-                setState(() {
-                  _isPrivate = value ?? false;
-                });
-              },
-              controlAffinity: ListTileControlAffinity.leading,
+            const SizedBox(height: 30),
+             Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isPrivate = false; // Set to Everyone
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: !_isPrivate ? Colors.blue : Colors.grey,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: const Center(
+                        child: Text(
+                          "Everyone",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isPrivate = true; // Set to Close Friends
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: _isPrivate ? Colors.blue : Colors.grey,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: const Center(
+                        child: Text(
+                          "Close Friends",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
+            // Display the selected audience text
+            Text(
+              _isPrivate ? "Only Close Friends can see this post.\n Close Friends: ${_closeFriends.join(', ')}"
+              : "Everyone can see this post.",
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _isLoading ? null : _createNewPost,
               child: _isLoading
