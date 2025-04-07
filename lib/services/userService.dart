@@ -75,8 +75,6 @@ class UserService {
     updateResults(results); // ส่งค่าผลลัพธ์กลับไปยัง SearchPage
   }
 
-  
-
   Future<String> getUserNameByUid(String uid) async {
     try {
       // ดึงข้อมูลจาก collection "User" โดยใช้ uid ของผู้โพสต์
@@ -93,15 +91,18 @@ class UserService {
       return 'Unknown';
     }
   }
-    Future<String> getUserBioByUid(String uid) async {
+
+  Future<String> getUserBioByUid(String uid) async {
     try {
-      DocumentSnapshot userDoc = await _firestore.collection('User').doc(uid).get();
-      return userDoc['bio'] ?? 'No bio available'; // ถ้าไม่มี bio ให้แสดงข้อความเริ่มต้น
+      DocumentSnapshot userDoc =
+          await _firestore.collection('User').doc(uid).get();
+      return userDoc['bio'] ??
+          'No bio available'; // ถ้าไม่มี bio ให้แสดงข้อความเริ่มต้น
     } catch (e) {
       return 'No bio available'; // กัน error
     }
   }
-  
+
   Future<Widget> displayUserProfilePic(String userPicPath) async {
     try {
       // Fetch the image URL from Firebase Storage using the given path
@@ -138,7 +139,7 @@ class UserService {
     try {
       await _firestore.collection("User").doc(uid).set({
         'name': name.toLowerCase().trim(),
-        'bio' : bio.trim(),
+        'bio': bio.trim(),
       }, SetOptions(merge: true)); // ✅ ใช้ merge เพื่ออัปเดตเฉพาะฟิลด์ที่ส่งมา
     } catch (e) {
       print("❌ Error updating profile: $e");
@@ -228,7 +229,8 @@ class UserService {
     final userSnap = await userRef.get();
     final currentUserUid = _firebaseAuth.currentUser!.uid;
 
-    final bool isCloseFriend = (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
+    final bool isCloseFriend =
+        (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
 
     Query query = postRef.where('ownerId', isEqualTo: uid);
 
@@ -240,18 +242,18 @@ class UserService {
 
     final AggregateQuerySnapshot snapshot = await query.count().get();
     final postCount = snapshot.count;
-    
+
     return Future.value(postCount);
   }
-   Future<List<String>> getCloseFriends(String uid) async {
-    try {
-      // ดึงข้อมูลของ user จาก Firestore โดยใช้ uid
-      DocumentSnapshot userDoc = await _firestore.collection('User').doc(uid).get();
 
-      // ตรวจสอบว่า key 'closeFriends' มีอยู่ใน document หรือไม่
-      List<String> closeFriendsUid = List<String>.from(userDoc['closefriend'] ?? []);
-      
-      // ดึงชื่อจาก UID ของ closefriends โดยใช้ getUserNameByUid()
+  Future<List<String>> getCloseFriends(String uid) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('User').doc(uid).get();
+
+      List<String> closeFriendsUid =
+          List<String>.from(userDoc['closefriend'] ?? []);
+
       List<String> closeFriendsNames = [];
       for (String closeFriendUid in closeFriendsUid) {
         String name = await getUserNameByUid(closeFriendUid);
@@ -259,10 +261,74 @@ class UserService {
       }
 
       return closeFriendsNames;
+    } catch (e) {
+      print("Error fetching close friends names: $e");
+      return [];
     }
-   catch (e) {
-    print("Error fetching close friends names: $e");
-    return [];
   }
+
+  Future<List<String>> getCloseFriendsUid(String uid) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('User').doc(uid).get();
+
+      List<String> closeFriendsUid =
+          List<String>.from(userDoc['closefriend'] ?? []);
+
+      return closeFriendsUid;
+    } catch (e) {
+      print("Error fetching close friends uid: $e");
+      return [];
+    }
   }
+
+  Future<List<String>> getNotCloseFriendsUser(String uid) async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('User').get();
+
+      List<String> closeFriendUids = await getCloseFriendsUid(uid);
+
+      List<String> allUserNames = [];
+
+      for (var doc in snapshot.docs) {
+        String userId = doc.id;
+        if (userId != uid && !closeFriendUids.contains(userId)) {
+          String userName = await getUserNameByUid(userId);
+          allUserNames.add(userName);
+        }
+      }
+
+      return allUserNames;
+    } catch (e) {
+      throw Exception("Error getting all users: $e");
+    }
+  }
+
+  Future<void> addCloseFriends(
+      String uid, List<String> selectedUserNames) async {
+    try {
+      DocumentReference userRef = _firestore.collection('User').doc(uid);
+
+      List<String> selectedUserUids = [];
+
+      for (String name in selectedUserNames) {
+        QuerySnapshot snapshot = await _firestore
+            .collection('User')
+            .where('name', isEqualTo: name)
+            .get();
+
+        if (snapshot.docs.isNotEmpty) {
+          String selectedUid = snapshot.docs.first.id;
+          selectedUserUids.add(selectedUid);
+        }
+      }
+
+      await userRef.update({
+        'closefriend': FieldValue.arrayUnion(selectedUserUids),
+      });
+    } catch (e) {
+      throw Exception("Error adding close friends: $e");
+    }
+  }
+  
 }

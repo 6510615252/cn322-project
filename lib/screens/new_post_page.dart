@@ -11,7 +11,6 @@ import 'package:outstragram/widgets/widget_tree.dart';
 
 class NewPostPage extends StatefulWidget {
   final String? uid;
-  
 
   NewPostPage({super.key, String? uid})
       : uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
@@ -24,9 +23,9 @@ class _NewPostPageState extends State<NewPostPage> {
   final TextEditingController _captionController = TextEditingController();
   final PostService _postService = PostService();
   final UserService _userService = UserService();
-  
-  List<String> _closeFriends = [];
 
+  List<String> _closeFriends = [];
+  List<String> _allUsers = [];
   bool _isLoading = false;
   Uint8List? _imageBytes;
   bool _isPrivate = false;
@@ -37,18 +36,116 @@ class _NewPostPageState extends State<NewPostPage> {
     super.dispose();
   }
 
-   @override
+  @override
   void initState() {
     super.initState();
-    _loadCloseFriends();  // เรียกฟังก์ชันเพื่อดึงรายชื่อ Close Friends
+    _loadCloseFriends();
+    _loadAllUsers();
+    _loadCloseFriends();
   }
-  
+
   Future<void> _loadCloseFriends() async {
-    List<String> closeFriends = await _userService.getCloseFriends(widget.uid!);  // ดึงข้อมูลจาก userService
+    try {
+      // ดึงข้อมูล Close Friends จาก Firebase
+      List<String> closeFriends =
+          await _userService.getCloseFriends(widget.uid!);
+      setState(() {
+        _closeFriends = closeFriends;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error loading close friends: $e")),
+      );
+    }
+  }
+
+  //loadUser ที่ยังไม่อยู่ใน closefriends
+  void _loadAllUsers() async {
+    List<String> allUsers =
+        await _userService.getNotCloseFriendsUser(widget.uid!);
     setState(() {
-      _closeFriends = closeFriends;  // เก็บรายชื่อ Close Friends
+      _allUsers = allUsers;
     });
   }
+
+  Future<void> _addToCloseFriends(List<String> selectedUsers) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _userService.addCloseFriends(widget.uid!, selectedUsers);
+      setState(() {
+        _closeFriends.addAll(selectedUsers);
+        _allUsers.removeWhere((user) => selectedUsers.contains(user));
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Close friends updated successfully!")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error adding close friends: $e")),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showAddCloseFriendsDialog() {
+    List<String> selectedUsers = [];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Add Close Friends"),
+          content: SingleChildScrollView(
+            child: Column(
+              children: _allUsers.isEmpty
+                  ? [Text("No users available")]
+                  : _allUsers.map((user) {
+                      return CheckboxListTile(
+                        title: Text(user),
+                        value: selectedUsers.contains(user),
+                        onChanged: (bool? value) {
+                          setState(() {
+                            if (value != null) {
+                              if (value) {
+                                selectedUsers.add(user);
+                              } else {
+                                selectedUsers.remove(user);
+                              }
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                _addToCloseFriends(selectedUsers);
+                Navigator.of(context).pop();
+                _loadAllUsers(); // รีเฟรชข้อมูลผู้ใช้ที่ยังไม่ได้เป็น Close Friend
+              },
+              child: const Text("Done"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -149,10 +246,9 @@ class _NewPostPageState extends State<NewPostPage> {
             TextField(
               controller: _captionController,
               decoration: const InputDecoration(labelText: "Caption"),
-              
             ),
             const SizedBox(height: 30),
-             Row(
+            Row(
               children: [
                 Expanded(
                   child: GestureDetector(
@@ -204,8 +300,9 @@ class _NewPostPageState extends State<NewPostPage> {
             const SizedBox(height: 30),
             // Display the selected audience text
             Text(
-              _isPrivate ? "Only Close Friends can see this post.\n Close Friends: ${_closeFriends.join(', ')}"
-              : "Everyone can see this post.",
+              _isPrivate
+                  ? "Only Close Friends can see this post.\n Close Friends: ${_closeFriends.join(', ')}"
+                  : "Everyone can see this post.",
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 20),
@@ -214,6 +311,11 @@ class _NewPostPageState extends State<NewPostPage> {
               child: _isLoading
                   ? const CircularProgressIndicator()
                   : const Text("Create Post"),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _showAddCloseFriendsDialog,
+              child: const Text("Add Close Friends"),
             ),
           ],
         ),
