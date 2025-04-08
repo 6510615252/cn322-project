@@ -74,9 +74,13 @@ class _NewPostPageState extends State<NewPostPage> {
     });
 
     try {
+      // เพิ่มผู้ใช้ที่เลือกไปยัง Close Friends ของ Firebase
       await _userService.addCloseFriends(widget.uid!, selectedUsers);
+
+      // อัปเดต Close Friends ในตัวแปร _closeFriends เพื่อให้แสดงผลทันที
       setState(() {
         _closeFriends.addAll(selectedUsers);
+        // ลบผู้ใช้ที่เพิ่มไปแล้วจาก _allUsers เพื่อไม่ให้แสดงในรายการอีก
         _allUsers.removeWhere((user) => selectedUsers.contains(user));
       });
 
@@ -104,25 +108,23 @@ class _NewPostPageState extends State<NewPostPage> {
           title: const Text("Add Close Friends"),
           content: SingleChildScrollView(
             child: Column(
-              children: _allUsers.isEmpty
-                  ? [Text("No users available")]
-                  : _allUsers.map((user) {
-                      return CheckboxListTile(
-                        title: Text(user),
-                        value: selectedUsers.contains(user),
-                        onChanged: (bool? value) {
-                          setState(() {
-                            if (value != null) {
-                              if (value) {
-                                selectedUsers.add(user);
-                              } else {
-                                selectedUsers.remove(user);
-                              }
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
+              children: _allUsers.map((user) {
+                return CheckboxListTile(
+                  title: Text(user),
+                  value: selectedUsers.contains(user),
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        if (value) {
+                          selectedUsers.add(user);
+                        } else {
+                          selectedUsers.remove(user);
+                        }
+                      }
+                    });
+                  },
+                );
+              }).toList(),
             ),
           ),
           actions: [
@@ -134,8 +136,8 @@ class _NewPostPageState extends State<NewPostPage> {
             ),
             TextButton(
               onPressed: () {
-                _addToCloseFriends(selectedUsers);
-                Navigator.of(context).pop();
+                _addToCloseFriends(selectedUsers); // อัปเดต Close Friends
+                Navigator.of(context).pop(); // ปิด Dialog
                 _loadAllUsers(); // รีเฟรชข้อมูลผู้ใช้ที่ยังไม่ได้เป็น Close Friend
               },
               child: const Text("Done"),

@@ -110,11 +110,17 @@ class UserService {
           await FirebaseStorage.instance.ref(userPicPath).getDownloadURL();
 
       // Display the image using the fetched URL
-      return Image.network(downloadUrl);
+      return Image.network(
+        downloadUrl,
+        fit: BoxFit.cover,
+      );
     } catch (e) {
       print("❌ Error loading image: $e");
       // Return a default image if there was an error
-      return Image.asset('assets/default_profile_pic.png');
+      return Image.asset(
+        'assets/images/default_profile.jpg', // เปลี่ยน path ตามที่คุณมี
+        fit: BoxFit.cover,
+      );
     }
   }
 
@@ -330,5 +336,16 @@ class UserService {
       throw Exception("Error adding close friends: $e");
     }
   }
-  
+
+  Future<void> updateBio(String uid, String newBio) async {
+    try {
+      // บันทึก path ของรูปภาพลงใน Firestore
+      await _firestore.collection("User").doc(uid).update({
+        'bio': newBio,
+      });
+    } catch (e) {
+      print("❌ Error saving image path to Firestore: $e");
+      throw e;
+    }
+  }
 }
