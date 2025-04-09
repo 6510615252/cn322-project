@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:outstragram/services/postService.dart';
 import 'package:outstragram/services/userService.dart';
+import 'package:outstragram/screens/post_detail_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? uid;
@@ -269,7 +270,20 @@ class _ProfilePageState extends State<ProfilePage> {
                                     child: CircularProgressIndicator());
                               }
 
-                              return postPicSnapshot.data ?? Container();
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PostDetailPage(
+                                        postPicPath: postPicPath,
+                                        postData: posts[index],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: postPicSnapshot.data ?? Container(),
+                              );
                             },
                           );
                         },
