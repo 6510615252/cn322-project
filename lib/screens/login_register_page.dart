@@ -72,11 +72,22 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _submitButton() {
-    return ElevatedButton(
-      onPressed: isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword, 
-      child: Text(isLogin ? "Login" : "Register"),
-    );
-  }
+  return ElevatedButton(
+    onPressed: isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword, 
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Color(0xFF8AB2A6), // สีครีม
+      foregroundColor: Colors.black, // สีข้อความบนปุ่ม
+      padding: EdgeInsets.symmetric(vertical: 14), // เพิ่มความสูงของปุ่ม
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+    child: Text(
+      isLogin ? "Login" : "Register",
+      style: TextStyle(fontWeight: FontWeight.bold),
+    ),
+  );
+}
 
   Widget _googleSignInButton() {
     return ElevatedButton.icon(
@@ -90,41 +101,93 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _loginOrRegisterButton() {
-    return TextButton(
-      onPressed: () {
-        setState(() {
-          isLogin = !isLogin;
-        });
-      }, 
-      child: Text(isLogin ? "Register instead" : "Login instead"),
-    );
-  }
+  return TextButton(
+    onPressed: () {
+      setState(() {
+        isLogin = !isLogin;
+      });
+    },
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Color(0xFF8AB2A6), // สีครีม
+      foregroundColor: Colors.black, // สีข้อความบนปุ่ม
+      padding: EdgeInsets.symmetric(vertical: 14), // เพิ่มความสูงของปุ่ม
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+    child: Text(isLogin ? "Register instead" : "Login instead",
+    style: TextStyle(
+        fontWeight: FontWeight.bold, // เพิ่มความหนา
+        color: Colors.black,          // ทำให้สีเข้มเหมือนปุ่ม login
+      ),),
+    
+  );
+}
+
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: _title(),
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color.fromARGB(255, 248, 248, 248),
+    body: Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            elevation: 8,
+            color: Color(0xFFF6F1DE),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "OUTRAGRAM",
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    isLogin ? "Login to your account" : "Create a new account",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  _entryField("Email", _controllerEmail),
+                  const SizedBox(height: 12),
+                  _entryField("Password", _controllerPassword),
+                  const SizedBox(height: 16),
+                  _errorMessage(),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _submitButton(),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: <Widget>[
+                      Expanded(child: Divider(thickness: 1)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text("or"),
+                      ),
+                      Expanded(child: Divider(thickness: 1)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: _googleSignInButton(),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(width: double.infinity ,
+                  child: _loginOrRegisterButton(),)
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
-      body: Container(
-        height: double.infinity,
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            if (!isLogin) Text("Register", style: TextStyle(fontSize: 20))
-            else Text("Login", style: TextStyle(fontSize: 20)),
-            _entryField("email", _controllerEmail),
-            _entryField("password", _controllerPassword),
-            _errorMessage(),
-            _submitButton(),
-            _googleSignInButton(), 
-            _loginOrRegisterButton(),
-          ],
-        )
-      ),
-    );
-  }
+    ),
+  );
+}
+
 }
