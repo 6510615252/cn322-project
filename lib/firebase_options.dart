@@ -4,6 +4,21 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+
+void enablePersistence() {
+  
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+    );
+  if (!kIsWeb) {  
+  
+    FirebaseDatabase.instance.setPersistenceEnabled(true);
+    FirebaseDatabase.instance.setPersistenceCacheSizeBytes(10000000); // กำหนดขนาด cache
+  }
+}
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -15,6 +30,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 ///   options: DefaultFirebaseOptions.currentPlatform,
 /// );
 /// ```
+
+
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
