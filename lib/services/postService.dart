@@ -81,6 +81,7 @@ class PostService {
         'pic' : picPath,
         'isPrivate' : isPrivate,
         'context' : context,
+        'timestamp' : Timestamp.fromDate(DateTime.now())
       }, SetOptions(merge: true)); 
     } catch (e) {
       print("❌ Error updating profile: $e");
@@ -114,47 +115,76 @@ class PostService {
   }
 
   Future<List<Map<String, dynamic>>> fetchUserPosts(String uid) async {
-      final userRef = _firestore.collection('User').doc(uid);
-      final postRef = _firestore.collection('post');
+  final userRef = _firestore.collection('User').doc(uid);
+  final postRef = _firestore.collection('post');
+  final currentUserUid = _firebaseAuth.currentUser!.uid;
 
-      // ดึงข้อมูล user profile
-      final userSnap = await userRef.get();
-      final currentUserUid = _firebaseAuth.currentUser!.uid;
+  // ดึงข้อมูล user profile
+  final userSnap = await userRef.get();
+  final isCloseFriend = (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
 
-      // ตรวจสอบว่า currentUser อยู่ใน closeFriend list หรือไม่
-      final bool isCloseFriend = (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
+  Query query;
 
-      // ถ้าเป็น Close Friend ให้ดึงทุกโพสต์ ถ้าไม่ใช่ให้ดึงเฉพาะ isPrivate: false
-      Query query = postRef.where('ownerId', isEqualTo: uid);
-
-    if (currentUserUid != uid) {
-      if (isCloseFriend) {
-        // ถ้าเราเป็น closeFriend -> ดึงทั้ง public และ private
-        query = query.where('isPrivate', whereIn: [true, false]);
-      } else {
-        // ถ้าไม่ใช่ -> ดึงเฉพาะ public
-        query = query.where('isPrivate', isEqualTo: false);
-      }
-    }
-
-    final querySnapshot = await query.get();
-    return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+  if (currentUserUid == uid) {
+    // 🔵 เป็นเจ้าของโพสต์ → เห็นทุกโพสต์
+    query = postRef
+        .where('ownerId', isEqualTo: uid)
+        .where('isPrivate', whereIn: [true, false])
+        .orderBy('timestamp', descending: true);
+  } else if (isCloseFriend) {
+    // 🟢 เป็น close friend → เห็นทั้ง public + private
+    // ต้องสร้าง index สำหรับ: ownerId == xxx, isPrivate in [true, false], orderBy timestamp
+    query = postRef
+        .where('ownerId', isEqualTo: uid)
+        .where('isPrivate', whereIn: [true, false])
+        .orderBy('timestamp', descending: true);
+  } else {
+    // 🔴 คนทั่วไป → เห็นแค่ public
+    // ต้องสร้าง index: ownerId == xxx, isPrivate == false, orderBy timestamp
+    query = postRef
+        .where('ownerId', isEqualTo: uid)
+        .where('isPrivate', isEqualTo: false)
+        .orderBy('timestamp', descending: true);
   }
 
-  Future<List<Map<String, dynamic>>> fetchFollowingPosts() async {
-    final currentUser = _firebaseAuth.currentUser;
-    if (currentUser == null) return [];
+  try {
+    final querySnapshot = await query.get();
+    return querySnapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
+  } catch (e) {
+    print("Error fetching posts: $e");
+    return [];
+  }
+}
 
+Future<List<Map<String, dynamic>>> fetchFollowingPosts() async {
+  final currentUser = _firebaseAuth.currentUser;
+  if (currentUser == null) return [];
+
+  try {
+    // ดึง list following ของ current user
     final userSnapshot = await _firestore.collection('User').doc(currentUser.uid).get();
-    final following = List<String>.from(userSnapshot['following'] ?? []);
+    final following = List<String>.from(userSnapshot.data()?['following'] ?? []);
 
-    List<Map<String, dynamic>> allPosts = [];
+    // รวมตัวเองไว้ด้วย (กรณีอยากเห็นโพสต์ตัวเองใน feed)
+    following.add(currentUser.uid);
 
-    for (String uid in following) {
-      final posts = await fetchUserPosts(uid);
-      allPosts.addAll(posts);
-    }
+    // ดึงโพสต์ของทุกคนพร้อมกัน
+    final futures = following.map((uid) => fetchUserPosts(uid));
+    final results = await Future.wait(futures);
+
+    // รวมโพสต์ทั้งหมด
+    List<Map<String, dynamic>> allPosts = results.expand((postList) => postList).toList();
+
+    // เรียงตาม timestamp ใหม่สุด → เก่าสุด
+    allPosts.sort((a, b) => (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
 
     return allPosts;
+  } catch (e) {
+    print("Error fetching following posts: $e");
+    return [];
   }
+}
+
 }
