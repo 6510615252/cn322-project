@@ -116,23 +116,23 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
               decoration: const InputDecoration(labelText: "Your bio"),
             ),
             const SizedBox(height: 20),
-            _imageBytes == null
-                ? ElevatedButton(
-                    onPressed: _pickImage,
-                    child: const Text("Pick Profile Picture"),
-                  )
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: kIsWeb
-                        ? Image.memory(_imageBytes!,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover) // ✅ ใช้สำหรับ Web
-                        : Image.memory(_imageBytes!,
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover), // ✅ ใช้สำหรับ Mobile
-                  ),
+            // Always show the button to pick image
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: const Text("Pick Profile Picture"),
+            ),
+            const SizedBox(height: 10),
+            // Display the selected image if available
+            if (_imageBytes != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: Image.memory(
+                  _imageBytes!,
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.cover,
+                ),
+              ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _isLoading ? null : _saveUserData,
