@@ -221,30 +221,31 @@ class _NewPostPageState extends State<NewPostPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 40),
-            _imageBytes == null
-                ? ElevatedButton(
-                    onPressed: _pickImage,
-                    child: const Text("Pick an Image"),
-                  )
-                : GestureDetector(
-                    onTap: _pickImage, // Allow user to tap to change the image
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: kIsWeb
-                          ? Image.memory(
-                              _imageBytes!,
-                              width: 150,
-                              height: 150,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.memory(
-                              _imageBytes!,
-                              width: 150,
-                              height: 150,
-                              fit: BoxFit.cover,
-                            ),
-                    ),
-                  ),
+            // Display image preview if selected
+            if (_imageBytes != null)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: kIsWeb
+                    ? Image.memory(
+                        _imageBytes!,
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.memory(
+                        _imageBytes!,
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+            const SizedBox(height: 20),
+            // Always display the "Pick an Image" button
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: Text(_imageBytes == null ? "Pick an Image" : "Change Image"),
+            ),
+            const SizedBox(height: 20),
             TextField(
               controller: _captionController,
               decoration: const InputDecoration(labelText: "Caption"),
