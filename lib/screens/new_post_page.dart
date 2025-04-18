@@ -9,6 +9,14 @@ import 'package:outstragram/services/userService.dart';
 import 'package:outstragram/screens/home_page.dart';
 import 'package:outstragram/widgets/widget_tree.dart';
 
+// ธีมสีที่กำหนด
+class AppTheme {
+  static const Color creamColor = Color(0xFFF5F0DC);
+  static const Color navyColor = Color(0xFF363B5C);
+  static const Color tealColor = Color(0xFF8BB3A8);
+  static const Color lightGreenColor = Color(0xFFB4DBA0);
+}
+
 class NewPostPage extends StatefulWidget {
   final String? uid;
 
@@ -41,31 +49,32 @@ class _NewPostPageState extends State<NewPostPage> {
     super.initState();
     _loadCloseFriends();
     _loadAllUsers();
-    _loadCloseFriends();
   }
 
   Future<void> _loadCloseFriends() async {
     try {
-      // ดึงข้อมูล Close Friends จาก Firebase
       List<String> closeFriends =
           await _userService.getCloseFriends(widget.uid!);
       setState(() {
         _closeFriends = closeFriends;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error loading close friends: $e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error loading close friends: $e")),
+        );
+      }
     }
   }
 
-  //loadUser ที่ยังไม่อยู่ใน closefriends
   void _loadAllUsers() async {
     List<String> allUsers =
         await _userService.getNotCloseFriendsUser(widget.uid!);
-    setState(() {
-      _allUsers = allUsers;
-    });
+    if (mounted) {
+      setState(() {
+        _allUsers = allUsers;
+      });
+    }
   }
 
   Future<void> _addToCloseFriends(List<String> selectedUsers) async {
@@ -74,22 +83,25 @@ class _NewPostPageState extends State<NewPostPage> {
     });
 
     try {
-      // เพิ่มผู้ใช้ที่เลือกไปยัง Close Friends ของ Firebase
       await _userService.addCloseFriends(widget.uid!, selectedUsers);
 
-      // อัปเดต Close Friends ในตัวแปร _closeFriends เพื่อให้แสดงผลทันที
       setState(() {
         _closeFriends.addAll(selectedUsers);
-        // ลบผู้ใช้ที่เพิ่มไปแล้วจาก _allUsers เพื่อไม่ให้แสดงในรายการอีก
         _allUsers.removeWhere((user) => selectedUsers.contains(user));
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Close friends updated successfully!")),
+        SnackBar(
+          content: const Text("Close friends updated successfully!"),
+          backgroundColor: AppTheme.navyColor,
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error adding close friends: $e")),
+        SnackBar(
+          content: Text("Error adding close friends: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       setState(() {
@@ -104,45 +116,73 @@ class _NewPostPageState extends State<NewPostPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Add Close Friends"),
-          content: SingleChildScrollView(
-            child: Column(
-              children: _allUsers.map((user) {
-                return CheckboxListTile(
-                  title: Text(user),
-                  value: selectedUsers.contains(user),
-                  onChanged: (bool? value) {
-                    setState(() {
-                      if (value != null) {
-                        if (value) {
-                          selectedUsers.add(user);
-                        } else {
-                          selectedUsers.remove(user);
-                        }
-                      }
-                    });
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: AppTheme.creamColor,
+              title: Row(
+                children: [
+                  Icon(Icons.people_alt, color: AppTheme.tealColor),
+                  const SizedBox(width: 10),
+                  const Text("Add Close Friends"),
+                ],
+              ),
+              content: Container(
+                width: double.maxFinite,
+                child: _allUsers.isEmpty
+                    ? const Center(
+                        child: Text("No users available to add"),
+                      )
+                    : SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: _allUsers.map((user) {
+                            return CheckboxListTile(
+                              title: Text(user),
+                              value: selectedUsers.contains(user),
+                              onChanged: (bool? value) {
+                                setStateDialog(() {
+                                  if (value != null) {
+                                    if (value) {
+                                      selectedUsers.add(user);
+                                    } else {
+                                      selectedUsers.remove(user);
+                                    }
+                                  }
+                                });
+                              },
+                              activeColor: AppTheme.tealColor,
+                              checkColor: Colors.white,
+                            );
+                          }).toList(),
+                        ),
+                      ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
                   },
-                );
-              }).toList(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                _addToCloseFriends(selectedUsers); // อัปเดต Close Friends
-                Navigator.of(context).pop(); // ปิด Dialog
-                _loadAllUsers(); // รีเฟรชข้อมูลผู้ใช้ที่ยังไม่ได้เป็น Close Friend
-              },
-              child: const Text("Done"),
-            ),
-          ],
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.navyColor,
+                  ),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _addToCloseFriends(selectedUsers);
+                    Navigator.of(context).pop();
+                    _loadAllUsers();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.navyColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text("Done"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -163,14 +203,20 @@ class _NewPostPageState extends State<NewPostPage> {
   Future<void> _createNewPost() async {
     if (_captionController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a caption")),
+        SnackBar(
+          content: const Text("Please enter a caption"),
+          backgroundColor: AppTheme.navyColor,
+        ),
       );
       return;
     }
 
     if (_imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select an image for the post")),
+        SnackBar(
+          content: const Text("Please select an image for the post"),
+          backgroundColor: AppTheme.navyColor,
+        ),
       );
       return;
     }
@@ -180,13 +226,11 @@ class _NewPostPageState extends State<NewPostPage> {
     try {
       final String postId = '${DateTime.now().millisecondsSinceEpoch}';
 
-      // Upload image to Firebase Storage
       final String imageUrl = await _postService.uploadPostPic(
         _imageBytes!,
         postId,
       );
 
-      // Add post details to Firestore
       await _postService.addPost(
         postId: postId,
         isPrivate: _isPrivate,
@@ -196,7 +240,6 @@ class _NewPostPageState extends State<NewPostPage> {
 
       await _postService.updateUserPost(uId: widget.uid!, postId: postId);
 
-      // Navigate to home page
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => WidgetTree()),
@@ -204,7 +247,10 @@ class _NewPostPageState extends State<NewPostPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error creating post: $e")),
+        SnackBar(
+          content: Text("Error creating post: $e"),
+          backgroundColor: Colors.red,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -214,115 +260,412 @@ class _NewPostPageState extends State<NewPostPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Create New Post")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(height: 40),
-            // Display image preview if selected
-            if (_imageBytes != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: kIsWeb
-                    ? Image.memory(
-                        _imageBytes!,
-                        width: 150,
-                        height: 150,
-                        fit: BoxFit.cover,
-                      )
-                    : Image.memory(
-                        _imageBytes!,
-                        width: 150,
-                        height: 150,
-                        fit: BoxFit.cover,
+      backgroundColor: AppTheme.creamColor,
+      appBar: AppBar(
+        title: const Text("Create New Post"),
+        backgroundColor: AppTheme.navyColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: AppTheme.creamColor,
+                  title: const Text("Post Privacy"),
+                  content: const Text(
+                      "Everyone: All users can see your post.\n\nClose Friends: Only users you've added as close friends can see your post."),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.navyColor,
                       ),
-              ),
-            const SizedBox(height: 20),
-            // Always display the "Pick an Image" button
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: Text(_imageBytes == null ? "Pick an Image" : "Change Image"),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _captionController,
-              decoration: const InputDecoration(labelText: "Caption"),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isPrivate = false; // Set to Everyone
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: !_isPrivate ? Colors.blue : Colors.grey,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: const Center(
-                        child: Text(
-                          "Everyone",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
+                      child: const Text("Got it"),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isPrivate = true; // Set to Close Friends
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: _isPrivate ? Colors.blue : Colors.grey,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: const Center(
-                        child: Text(
-                          "Close Friends",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            // Display the selected audience text
-            Text(
-              _isPrivate
-                  ? "Only Close Friends can see this post.\n Close Friends: ${_closeFriends.join(', ')}"
-                  : "Everyone can see this post.",
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _createNewPost,
-              child: _isLoading
-                  ? const CircularProgressIndicator()
-                  : const Text("Create Post"),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _showAddCloseFriendsDialog,
-              child: const Text("Add Close Friends"),
-            ),
-          ],
-        ),
+              );
+            },
+          ),
+        ],
       ),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.navyColor,
+              ),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Image Section
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Text(
+                              "Post Image",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.navyColor,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            if (_imageBytes != null)
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.navyColor.withOpacity(0.2),
+                                      blurRadius: 5,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: kIsWeb
+                                      ? Image.memory(
+                                          _imageBytes!,
+                                          width: 250,
+                                          height: 250,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.memory(
+                                          _imageBytes!,
+                                          width: 250,
+                                          height: 250,
+                                          fit: BoxFit.cover,
+                                        ),
+                                ),
+                              ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _pickImage,
+                              icon: Icon(_imageBytes == null
+                                  ? Icons.add_photo_alternate
+                                  : Icons.edit),
+                              label: Text(_imageBytes == null
+                                  ? "Select Image"
+                                  : "Change Image"),
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 30, vertical: 12),
+                                foregroundColor: Colors.white,
+                                backgroundColor: AppTheme.tealColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Caption Section
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Caption",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.navyColor,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            TextField(
+                              controller: _captionController,
+                              decoration: InputDecoration(
+                                hintText: "What's on your mind?",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: AppTheme.tealColor,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  borderSide: BorderSide(
+                                    color: AppTheme.tealColor,
+                                    width: 2,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: AppTheme.creamColor.withOpacity(0.5),
+                              ),
+                              maxLines: 3,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Privacy Section
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(Icons.visibility, color: AppTheme.tealColor),
+                                const SizedBox(width: 10),
+                                Text(
+                                  "Privacy Settings",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.navyColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isPrivate = false; // Set to Everyone
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: !_isPrivate
+                                            ? AppTheme.navyColor
+                                            : Colors.grey.shade300,
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: !_isPrivate
+                                            ? [
+                                                BoxShadow(
+                                                  color: AppTheme.navyColor
+                                                      .withOpacity(0.3),
+                                                  spreadRadius: 1,
+                                                  blurRadius: 5,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 15),
+                                      child: Center(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.public,
+                                              color: !_isPrivate
+                                                  ? Colors.white
+                                                  : Colors.black54,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              "Everyone",
+                                              style: TextStyle(
+                                                color: !_isPrivate
+                                                    ? Colors.white
+                                                    : Colors.black54,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _isPrivate = true; // Set to Close Friends
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: _isPrivate
+                                            ? AppTheme.lightGreenColor
+                                            : Colors.grey.shade300,
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: _isPrivate
+                                            ? [
+                                                BoxShadow(
+                                                  color: AppTheme.lightGreenColor
+                                                      .withOpacity(0.3),
+                                                  spreadRadius: 1,
+                                                  blurRadius: 5,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ]
+                                            : null,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 15),
+                                      child: Center(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.group,
+                                              color: _isPrivate
+                                                  ? AppTheme.navyColor
+                                                  : Colors.black54,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              "Close Friends",
+                                              style: TextStyle(
+                                                color: _isPrivate
+                                                    ? AppTheme.navyColor
+                                                    : Colors.black54,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: _isPrivate
+                                    ? AppTheme.lightGreenColor.withOpacity(0.2)
+                                    : AppTheme.navyColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: _isPrivate
+                                      ? AppTheme.lightGreenColor
+                                      : AppTheme.navyColor.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _isPrivate ? Icons.check_circle : Icons.info,
+                                    color: _isPrivate
+                                        ? AppTheme.lightGreenColor
+                                        : AppTheme.navyColor,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      _isPrivate
+                                          ? _closeFriends.isNotEmpty
+                                              ? "Only your close friends will see this post (${_closeFriends.length} friends)"
+                                              : "Only your close friends will see this post. You haven't added any close friends yet."
+                                          : "Everyone will be able to see this post",
+                                      style: TextStyle(
+                                        color: _isPrivate
+                                            ? AppTheme.navyColor
+                                            : AppTheme.navyColor,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (_isPrivate)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(top: 16.0, bottom: 8.0),
+                                child: TextButton.icon(
+                                  onPressed: _showAddCloseFriendsDialog,
+                                  icon: Icon(Icons.person_add, 
+                                    color: AppTheme.tealColor),
+                                  label: Text("Manage Close Friends", 
+                                    style: TextStyle(color: AppTheme.tealColor)),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    // Create Post Button
+                    SizedBox(
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _createNewPost,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.navyColor,
+                          foregroundColor: Colors.white,
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          disabledBackgroundColor: 
+                              AppTheme.navyColor.withOpacity(0.5),
+                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.post_add, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Create Post",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 }
