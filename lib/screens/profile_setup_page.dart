@@ -56,7 +56,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("กรุณาใส่ชื่อที่ต้องการแสดง"),
+          content: Text("Please enter a display name"),
           backgroundColor: AppTheme.navyColor,
         ),
       );
@@ -66,7 +66,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     if (_bioController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("กรุณาเขียนประวัติสั้นๆ ของคุณ"),
+          content: Text("Please write a short bio"),
           backgroundColor: AppTheme.navyColor,
         ),
       );
@@ -76,7 +76,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     if (_imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("กรุณาเลือกรูปโปรไฟล์"),
+          content: Text("Please select a profile picture"),
           backgroundColor: AppTheme.navyColor,
         ),
       );
@@ -108,7 +108,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("เกิดข้อผิดพลาดในการบันทึกโปรไฟล์: $e"),
+          content: Text("Error saving profile: $e"),
           backgroundColor: Colors.red,
         ),
       );
@@ -123,7 +123,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       backgroundColor: AppTheme.creamColor,
       appBar: AppBar(
         title: const Text(
-          "ตั้งค่าโปรไฟล์",
+          "Profile Setup",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -218,7 +218,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "ข้อมูลส่วนตัว",
+                      "Personal Information",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -229,7 +229,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                     TextField(
                       controller: _nameController,
                       decoration: InputDecoration(
-                        labelText: "ชื่อที่แสดง",
+                        labelText: "Display Name",
                         labelStyle: TextStyle(color: AppTheme.navyColor.withOpacity(0.6)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -249,9 +249,9 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                       controller: _bioController,
                       maxLines: 3,
                       decoration: InputDecoration(
-                        labelText: "เกี่ยวกับคุณ",
+                        labelText: "About You",
                         labelStyle: TextStyle(color: AppTheme.navyColor.withOpacity(0.6)),
-                        hintText: "เขียนเล่าเกี่ยวกับตัวคุณสั้นๆ",
+                        hintText: "Write a short description about yourself",
                         hintStyle: TextStyle(color: AppTheme.navyColor.withOpacity(0.4)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -293,7 +293,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                         ),
                       )
                     : const Text(
-                        "บันทึกโปรไฟล์",
+                        "Save Profile",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
