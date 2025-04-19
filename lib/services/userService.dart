@@ -53,7 +53,7 @@ class UserService {
   }
 
   Future<void> searchUsers(
-    String query, Function(List<Map<String, dynamic>>) updateResults) async {
+      String query, Function(List<Map<String, dynamic>>) updateResults) async {
     if (query.isEmpty) {
       updateResults([]); // หาก query ว่าง ให้เคลียร์ผลลัพธ์
       return;
@@ -345,6 +345,32 @@ class UserService {
     } catch (e) {
       print("❌ Error saving image path to Firestore: $e");
       throw e;
+    }
+  }
+
+  //ฟังก์ชั่นดึงรายชื่อคนที่เราคิดตามอยู่
+  Future<List<String>> getFollowingUsers(currentUserUid) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('User').doc(currentUserUid).get();
+
+      if (userDoc.exists) {
+        List<dynamic> followingList = userDoc['following'] ?? [];
+
+        List<String> followingNames = [];
+
+        for (String uid in followingList) {
+          String userName = await getUserNameByUid(uid);
+          followingNames.add(userName);
+        }
+
+        return followingNames;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error getting following users with names: $e");
+      return [];
     }
   }
 }

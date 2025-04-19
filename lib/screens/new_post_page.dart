@@ -110,8 +110,12 @@ class _NewPostPageState extends State<NewPostPage> {
     }
   }
 
-  void _showAddCloseFriendsDialog() {
+  void _showAddCloseFriendsDialog() async {
     List<String> selectedUsers = [];
+
+    // คืนค่าผู้ใช้ที่เราได้ติดตาม
+    List<String> followingUsers =
+        await _userService.getFollowingUsers(widget.uid);
 
     showDialog(
       context: context,
@@ -129,14 +133,14 @@ class _NewPostPageState extends State<NewPostPage> {
               ),
               content: Container(
                 width: double.maxFinite,
-                child: _allUsers.isEmpty
+                child: followingUsers.isEmpty
                     ? const Center(
-                        child: Text("No users available to add"),
+                        child: Text("You are not following any users."),
                       )
                     : SingleChildScrollView(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
-                          children: _allUsers.map((user) {
+                          children: followingUsers.map((user) {
                             return CheckboxListTile(
                               title: Text(user),
                               value: selectedUsers.contains(user),
@@ -330,7 +334,8 @@ class _NewPostPageState extends State<NewPostPage> {
                                   borderRadius: BorderRadius.circular(15),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.navyColor.withOpacity(0.2),
+                                      color:
+                                          AppTheme.navyColor.withOpacity(0.2),
                                       blurRadius: 5,
                                       offset: Offset(0, 2),
                                     ),
@@ -443,7 +448,8 @@ class _NewPostPageState extends State<NewPostPage> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.visibility, color: AppTheme.tealColor),
+                                Icon(Icons.visibility,
+                                    color: AppTheme.tealColor),
                                 const SizedBox(width: 10),
                                 Text(
                                   "Privacy Settings",
@@ -517,7 +523,8 @@ class _NewPostPageState extends State<NewPostPage> {
                                   child: GestureDetector(
                                     onTap: () {
                                       setState(() {
-                                        _isPrivate = true; // Set to Close Friends
+                                        _isPrivate =
+                                            true; // Set to Close Friends
                                       });
                                     },
                                     child: Container(
@@ -529,7 +536,8 @@ class _NewPostPageState extends State<NewPostPage> {
                                         boxShadow: _isPrivate
                                             ? [
                                                 BoxShadow(
-                                                  color: AppTheme.lightGreenColor
+                                                  color: AppTheme
+                                                      .lightGreenColor
                                                       .withOpacity(0.3),
                                                   spreadRadius: 1,
                                                   blurRadius: 5,
@@ -587,7 +595,9 @@ class _NewPostPageState extends State<NewPostPage> {
                               child: Row(
                                 children: [
                                   Icon(
-                                    _isPrivate ? Icons.check_circle : Icons.info,
+                                    _isPrivate
+                                        ? Icons.check_circle
+                                        : Icons.info,
                                     color: _isPrivate
                                         ? AppTheme.lightGreenColor
                                         : AppTheme.navyColor,
@@ -612,14 +622,15 @@ class _NewPostPageState extends State<NewPostPage> {
                             ),
                             if (_isPrivate)
                               Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 16.0, bottom: 8.0),
+                                padding: const EdgeInsets.only(
+                                    top: 16.0, bottom: 8.0),
                                 child: TextButton.icon(
                                   onPressed: _showAddCloseFriendsDialog,
-                                  icon: Icon(Icons.person_add, 
-                                    color: AppTheme.tealColor),
-                                  label: Text("Manage Close Friends", 
-                                    style: TextStyle(color: AppTheme.tealColor)),
+                                  icon: Icon(Icons.person_add,
+                                      color: AppTheme.tealColor),
+                                  label: Text("Manage Close Friends",
+                                      style:
+                                          TextStyle(color: AppTheme.tealColor)),
                                 ),
                               ),
                           ],
@@ -641,11 +652,12 @@ class _NewPostPageState extends State<NewPostPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          disabledBackgroundColor: 
+                          disabledBackgroundColor:
                               AppTheme.navyColor.withOpacity(0.5),
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: const [
