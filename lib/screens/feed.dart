@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:outstragram/services/postService.dart';
 import 'package:outstragram/services/userService.dart';
 
-// เพิ่ม AppTheme สำหรับใช้ในหน้านี้
+// Define AppTheme for use in this page
 class AppTheme {
   static const Color creamColor = Color(0xFFF5F0DC);
   static const Color navyColor = Color(0xFF363B5C);
@@ -242,23 +242,6 @@ class Feed extends StatelessWidget {
                             );
                           },
                         ),
-                      ),
-                    ),
-
-                    // Like, Comment, Share buttons
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      child: Row(
-                        children: [
-                          Icon(Icons.favorite_border,
-                              color: AppTheme.navyColor),
-                          const SizedBox(width: 8),
-                          Icon(Icons.chat_bubble_outline,
-                              color: AppTheme.navyColor),
-                          const SizedBox(width: 8),
-                          Icon(Icons.share_outlined, color: AppTheme.navyColor),
-                        ],
                       ),
                     ),
                   ],
