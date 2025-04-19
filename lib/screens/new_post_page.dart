@@ -607,7 +607,7 @@ class _NewPostPageState extends State<NewPostPage> {
                                     child: Text(
                                       _isPrivate
                                           ? _closeFriends.isNotEmpty
-                                              ? "Only your close friends will see this post (${_closeFriends.length} friends)"
+                                              ? "Only your close friends will see this post (${_closeFriends.toSet().length} friends)"
                                               : "Only your close friends will see this post. You haven't added any close friends yet."
                                           : "Everyone will be able to see this post",
                                       style: TextStyle(

@@ -35,7 +35,7 @@ class _HomePageState extends State<HomePage> {
         await Authservice().signOut();
         setState(() {});
       },
-      child: Text("Sign Out"),
+      child: Text("Sign xd"),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.grey,
       ),
@@ -56,24 +56,15 @@ class _HomePageState extends State<HomePage> {
 }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: _title(),
-      ),
-      body: Container(
-        height: double.infinity, 
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            _userUID(),
-             _start(context),
-            _signOutButton()
-            ],
-          ),
-        ),
-    );
+    // redirect ทันทีโดยไม่แสดง widget
+    Future.microtask(() {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const WidgetTree()),
+      );
+    });
+
+    return const SizedBox(); // หรือ Scaffold เปล่าๆ ก็ได้
   }
+
 }

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:outstragram/services/postService.dart';
 import 'package:outstragram/services/userService.dart';
 import 'package:outstragram/screens/post_detail_page.dart';
+import 'package:outstragram/widgets/manage_close_friends_button.dart';
 
 // Define app theme colors for consistency
 class AppTheme {
@@ -19,6 +20,7 @@ class ProfilePage extends StatefulWidget {
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
+
 
 class _ProfilePageState extends State<ProfilePage> {
   final User? currentUser = FirebaseAuth.instance.currentUser;
@@ -265,6 +267,13 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 16),
           // Follow/Unfollow button
+           if (isMyProfile) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ManageCloseFriendsButton(), // แทนที่ OutlinedButton
+            ),
+          ],
           if (!isMyProfile)
             SizedBox(
               width: double.infinity,

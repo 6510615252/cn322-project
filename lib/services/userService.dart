@@ -54,6 +54,7 @@ class UserService {
 
   Future<void> searchUsers(
       String query, Function(List<Map<String, dynamic>>) updateResults) async {
+        query = query.toLowerCase().trim();
     if (query.isEmpty) {
       updateResults([]); // หาก query ว่าง ให้เคลียร์ผลลัพธ์
       return;
