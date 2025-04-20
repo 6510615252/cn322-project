@@ -17,13 +17,10 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
 
-
   Future<void> signInWithEmailAndPassword() async {
     try {
       await Authservice().signInWithEmailAndPassword(
-        email: _controllerEmail.text, 
-        password: _controllerPassword.text
-      );
+          email: _controllerEmail.text, password: _controllerPassword.text);
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -32,11 +29,21 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> createUserWithEmailAndPassword() async {
+    if (_controllerPassword.text.length < 6) {
+      setState(() {
+        errorMessage = "Password must be at least 6 characters";
+      });
+      return;
+    }
     try {
       await Authservice().createUserWithEmailAndPassword(
         email: _controllerEmail.text,
         password: _controllerPassword.text,
       );
+      // ถ้าสำเร็จ ให้เคลียร์ error message
+      setState(() {
+        errorMessage = '';
+      });
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -59,27 +66,26 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _entryField(String title, TextEditingController controller) {
     return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: title,
-        labelStyle: TextStyle(
-          color: Colors.black87,
-          fontWeight: FontWeight.w500,
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: title,
+          labelStyle: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+          filled: true,
+          fillColor: Colors.white,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Color(0xFF8AB2A6), width: 1.5),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Color(0xFF8AB2A6), width: 2),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
-        filled: true,
-        fillColor: Colors.white,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF8AB2A6), width: 1.5),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF8AB2A6), width: 2),
-        ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-      obscureText: title.toLowerCase() == 'password'
-    );
+        obscureText: title.toLowerCase() == 'password');
   }
 
   Widget _errorMessage() {
@@ -100,7 +106,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _submitButton() {
     return ElevatedButton(
-      onPressed: isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword, 
+      onPressed:
+          isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFF8AB2A6),
         foregroundColor: Colors.white,
@@ -125,14 +132,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget _googleSignInButton() {
     return ElevatedButton.icon(
       icon: Icon(Icons.login, color: Colors.white, size: 20),
-      label: Text(
-        "Sign in with Google", 
-        style: TextStyle(
-          color: Colors.white, 
-          fontWeight: FontWeight.w600,
-          fontSize: 15,
-        )
-      ),
+      label: Text("Sign in with Google",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          )),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
@@ -176,7 +181,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,7 +190,8 @@ class _LoginPageState extends State<LoginPage> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               elevation: 10,
               shadowColor: Colors.black26,
               color: Color(0xFFF6F1DE),
@@ -201,8 +206,9 @@ class _LoginPageState extends State<LoginPage> {
                         shape: BoxShape.circle,
                         color: Color(0xFF8AB2A6).withOpacity(0.2),
                       ),
-                      child: Icon(Icons.photo_camera, 
-                        size: 50, 
+                      child: Icon(
+                        Icons.photo_camera,
+                        size: 50,
                         color: Color(0xFF8AB2A6),
                       ),
                     ),
@@ -210,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       "OUTRAGRAM",
                       style: TextStyle(
-                        fontSize: 34, 
+                        fontSize: 34,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 2,
                         color: Colors.black87,
@@ -218,9 +224,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      isLogin ? "Login to your account" : "Create a new account",
+                      isLogin
+                          ? "Login to your account"
+                          : "Create a new account",
                       style: TextStyle(
-                        fontSize: 16, 
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black54,
                       ),
@@ -239,7 +247,9 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 16),
                     Row(
                       children: <Widget>[
-                        Expanded(child: Divider(thickness: 1.5, color: Colors.black38)),
+                        Expanded(
+                            child:
+                                Divider(thickness: 1.5, color: Colors.black38)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0),
                           child: Text(
@@ -250,7 +260,9 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                         ),
-                        Expanded(child: Divider(thickness: 1.5, color: Colors.black38)),
+                        Expanded(
+                            child:
+                                Divider(thickness: 1.5, color: Colors.black38)),
                       ],
                     ),
                     const SizedBox(height: 16),

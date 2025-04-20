@@ -76,7 +76,7 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Color(0xFF8AB2A6),
+        backgroundColor: const Color(0xFF8AB2A6),
         selectedItemColor: Colors.white, // สีไอคอนและข้อความที่ถูกเลือก
         unselectedItemColor: const Color.fromARGB(255, 102, 100, 100),
         items: const [
@@ -85,7 +85,7 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Feed',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.add_box_outlined),
             label: 'New Post',
           ),
           BottomNavigationBarItem(
