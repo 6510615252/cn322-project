@@ -17,7 +17,10 @@ class Authservice {
     required String email,
     required String password,
   }) async {
-    await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+    await _firebaseAuth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
   // 🔹 Register (สร้างบัญชีใหม่)
@@ -36,7 +39,7 @@ class Authservice {
       await _userService.createUser(uid: uid, email: email); // 📌 บันทึกลง Firestore
       return uid;
     } catch (e) {
-      print("❌ Error: $e");
+      print("❌ Error during email sign up: $e");
       return null;
     }
   }
@@ -45,19 +48,34 @@ class Authservice {
   Future<UserCredential?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser == null) {
+        // User กดยกเลิก Google Sign-in
+        return null;
+      }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
+
+      final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
       UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-      String uid = userCredential.user!.uid;
-      String? email = userCredential.user?.email;
 
-      await _userService.createUser(uid: uid, email: email); // 📌 บันทึกลง Firestore
+      // ตรวจสอบถ้ามี user ใหม่ถึงจะสร้าง Firestore document
+      final User? user = userCredential.user;
+      if (user != null) {
+        final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('User')
+            .doc(user.uid)
+            .get();
+
+        if (!userDoc.exists) {
+          // ถ้ายังไม่มี doc ใน Firestore -> สร้างใหม่
+          await _userService.createUser(uid: user.uid, email: user.email ?? '');
+        }
+      }
+
       return userCredential;
     } catch (e) {
       print("❌ Google Sign-In Error: $e");
@@ -68,5 +86,6 @@ class Authservice {
   // 🔹 Sign Out
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
+    await _googleSignIn.signOut();
   }
 }
