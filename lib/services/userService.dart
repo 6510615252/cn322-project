@@ -54,7 +54,7 @@ class UserService {
 
   Future<void> searchUsers(
       String query, Function(List<Map<String, dynamic>>) updateResults) async {
-        query = query.toLowerCase().trim();
+    query = query.toLowerCase().trim();
     if (query.isEmpty) {
       updateResults([]); // หาก query ว่าง ให้เคลียร์ผลลัพธ์
       return;
@@ -103,23 +103,25 @@ class UserService {
     }
   }
 
-  Future<Widget> displayUserProfilePic(String userPicPath) async {
+  // ✅ ฟังก์ชันใหม่สำหรับดึง Widget แสดงรูปโปรไฟล์จาก UID
+  Future<Widget> displayUserProfileImage(String uid, {double radius = 20}) async {
     try {
-      // Fetch the image URL from Firebase Storage using the given path
-      String downloadUrl =
-          await FirebaseStorage.instance.ref(userPicPath).getDownloadURL();
-
-      // Display the image using the fetched URL
-      return Image.network(
-        downloadUrl,
-        fit: BoxFit.cover,
+      DocumentSnapshot userDoc =
+          await _firestore.collection('User').doc(uid).get();
+      String? userPicPath = userDoc['user_pic'];
+      String downloadUrl = await _firebaseStorage.ref(userPicPath).getDownloadURL();
+      return CircleAvatar(
+        radius: radius,
+        backgroundImage: NetworkImage(downloadUrl),
+        backgroundColor: Colors.grey.shade300, // สีพื้นหลังเผื่อโหลดไม่สำเร็จ
       );
     } catch (e) {
-      print("❌ Error loading image: $e");
-      // Return a default image if there was an error
-      return Image.asset(
-        'assets/images/default_profile.jpg', // เปลี่ยน path ตามที่คุณมี
-        fit: BoxFit.cover,
+      print("❌ Error loading profile image for UID $uid: $e");
+      return CircleAvatar(
+        radius: radius,
+        backgroundImage:
+            const AssetImage('assets/images/default_profile.jpg'), // ใช้รูป default
+        backgroundColor: Colors.grey.shade300,
       );
     }
   }
@@ -372,6 +374,26 @@ class UserService {
     } catch (e) {
       print("Error getting following users with names: $e");
       return [];
+    }
+  }
+  Future<Widget> displayUserProfilePic(String userPicPath) async {
+    try {
+      // Fetch the image URL from Firebase Storage using the given path
+      String downloadUrl =
+          await FirebaseStorage.instance.ref(userPicPath).getDownloadURL();
+
+      // Display the image using the fetched URL
+      return Image.network(
+        downloadUrl,
+        fit: BoxFit.cover,
+      );
+    } catch (e) {
+      print("❌ Error loading image: $e");
+      // Return a default image if there was an error
+      return Image.asset(
+        'assets/images/default_profile.jpg', // เปลี่ยน path ตามที่คุณมี
+        fit: BoxFit.cover,
+      );
     }
   }
 }

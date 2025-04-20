@@ -121,60 +121,55 @@ class _FeedState extends State<Feed> {
                         padding: const EdgeInsets.all(12),
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              backgroundColor:
-                                  AppTheme.tealColor.withOpacity(0.2),
-                              radius: 20,
-                              child: FutureBuilder<Widget>(
-                                future: widget.postService.displayPostPic(
-                                    postData['pic'] ?? "user_pic/UserPicDef.jpg"),
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return Center(
-                                      child: SizedBox(
-                                        width: 15,
-                                        height: 15,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  AppTheme.tealColor),
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  if (snapshot.hasError) {
-                                    return const Icon(Icons.error, size: 20);
-                                  }
-                                  return ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
+                            FutureBuilder<Widget>(
+                              future: widget.userService.displayUserProfileImage(
+                                postData['ownerId'],
+                                radius: 20,
+                              ),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                    ConnectionState.waiting) {
+                                  return const CircleAvatar(
+                                    radius: 20,
                                     child: SizedBox(
-                                      width: 40,
-                                      height: 40,
-                                      child: snapshot.data ??
-                                          const Icon(Icons.image, size: 20),
+                                      width: 15,
+                                      height: 15,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                            AppTheme.tealColor),
+                                      ),
                                     ),
                                   );
-                                },
-                              ),
+                                }
+                                if (snapshot.hasError) {
+                                  return const CircleAvatar(
+                                    radius: 20,
+                                    child: Icon(Icons.error, size: 20),
+                                  );
+                                }
+                                return snapshot.data ??
+                                    const CircleAvatar(
+                                      radius: 20,
+                                      child: Icon(Icons.person),
+                                    );
+                              },
                             ),
                             const SizedBox(width: 12),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 FutureBuilder<String>(
-                                  future: widget.userService.getUserNameByUid(
-                                      postData['ownerId']),
+                                  future: widget.userService
+                                      .getUserNameByUid(postData['ownerId']),
                                   builder: (context, snapshot) {
                                     if (snapshot.connectionState ==
                                         ConnectionState.waiting) {
                                       return Text(
                                         'Loading...',
                                         style: TextStyle(
-                                          color: AppTheme.navyColor
-                                              .withOpacity(0.5),
-                                        ),
+                                            color: AppTheme.navyColor
+                                                .withOpacity(0.5)),
                                       );
                                     }
                                     if (snapshot.hasError) {
@@ -182,7 +177,7 @@ class _FeedState extends State<Feed> {
                                     }
                                     return Text(
                                       snapshot.data ?? 'Unknown',
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         color: AppTheme.navyColor,
                                       ),
@@ -202,13 +197,13 @@ class _FeedState extends State<Feed> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(
+                                        const Icon(
                                           Icons.lock_outline,
                                           size: 12,
                                           color: AppTheme.tealColor,
                                         ),
                                         const SizedBox(width: 4),
-                                        Text(
+                                        const Text(
                                           "Close Friend Only",
                                           style: TextStyle(
                                             fontSize: 11,
