@@ -22,8 +22,9 @@ class PostService {
   );
 
   User? get currentUser => _firebaseAuth.currentUser;
-  String get profileUid => currentUser?.uid ?? '';
+  String get currentUid => currentUser?.uid ?? '';
 
+  // 🔹 ฟังก์ชันสำหรับแสดงภาพโพสต์จาก path
   Future<Widget> displayPostPic(String postPicPath) async {
     try {
       // Fetch the image URL from Firebase Storage using the given path
@@ -39,15 +40,35 @@ class PostService {
     }
   }
 
-  // ฟังก์ชันสำหรับอัปโหลดรูปภาพ
-  Future<String> uploadPostPic(Uint8List imageBytes, String fileName) async {
-    try {
-      Reference ref = _firebaseStorage.ref('posts_pic/$fileName');
-      await ref.putData(imageBytes);
-      addPost(postId: fileName, isPrivate : false, picPath: 'posts_pic/$fileName', context: "");
-      return await ref.getDownloadURL();
-    } catch (e) {
-      throw Exception("Upload failed: $e");
+  // 🔹 ฟังก์ชันสำหรับอัปโหลดภาพโพสต์
+  Future<String> uploadPostPic(
+      Uint8List imageBytes, String fileName, bool isPrivate) async {
+    if (isPrivate) {
+      try {
+        Reference ref = _firebaseStorage.ref('secret_post_pic/$fileName');
+        await ref.putData(imageBytes);
+        addPost(
+            postId: fileName,
+            picName: fileName,
+            context: "",
+            isPrivate: isPrivate);
+        return await ref.getDownloadURL();
+      } catch (e) {
+        throw Exception("Upload failed: $e");
+      }
+    } else {
+      try {
+        Reference ref = _firebaseStorage.ref('post_pic/$fileName');
+        await ref.putData(imageBytes);
+        addPost(
+            postId: fileName,
+            picName: fileName,
+            context: "",
+            isPrivate: isPrivate);
+        return await ref.getDownloadURL();
+      } catch (e) {
+        throw Exception("Upload failed: $e");
+      }
     }
   }
 
@@ -55,53 +76,63 @@ class PostService {
   Future<void> updateUserPost({
     required String uId,
     required String postId,
+    required bool isPrivate,
   }) async {
     try {
-      // add post id to array 'post'
-      await _firestore.collection("User").doc(uId).set({
-        'post': FieldValue.arrayUnion([postId]), // ใช้ FieldValue.arrayUnion เพื่อเพิ่มข้อมูลเข้าไปใน array
-      }, SetOptions(merge: true)); // ใช้ merge เพื่ออัปเดตเฉพาะฟิลด์ที่ส่งมา
+      if (isPrivate) {
+        await _firestore.collection("usersecret").doc(uId).set({
+          'post': FieldValue.arrayUnion([postId]), // เพิ่มข้อมูล
+        }, SetOptions(merge: true)); // ใช้ merge เฉพาะฟิลด์
+      } else {
+        await _firestore.collection("user").doc(uId).set({
+          'post': FieldValue.arrayUnion([postId]), // เพิ่มข้อมูล
+        }, SetOptions(merge: true)); // ใช้ merge เฉพาะฟิลด์
+      }
     } catch (e) {
-      print("❌ Error updating profile: $e");
+      print("❌ Error updating current: $e");
       throw e;
     }
   }
 
-  // 🔹 สร้างหรืออัปเดตข้อมูลผู้ใช้
+  // 🔹 ฟังก์ชันสำหรับเพิ่มโพสต์ใหม่
   Future<void> addPost({
     required String postId,
-    required bool isPrivate,
-    required String picPath,
+    required String picName,
     required String context,
+    required bool isPrivate,
   }) async {
     try {
-      // add post id to array 'post'
-      await _firestore.collection("post").doc(postId).set({
-        'ownerId' : profileUid,
-        'pic' : picPath,
-        'isPrivate' : isPrivate,
-        'context' : context,
-        'timestamp' : Timestamp.fromDate(DateTime.now())
-      }, SetOptions(merge: true)); 
+      if (isPrivate) {
+        await _firestore.collection("postsecret").doc(postId).set({
+          'ownerId': currentUid,
+          'pic': 'secret_post_pic/$picName',
+          'context': context,
+          'timestamp': Timestamp.fromDate(DateTime.now())
+        }, SetOptions(merge: true));
+      } else {
+        await _firestore.collection("post").doc(postId).set({
+          'ownerId': currentUid,
+          'pic': 'post_pic/$picName',
+          'context': context,
+          'timestamp': Timestamp.fromDate(DateTime.now())
+        }, SetOptions(merge: true));
+      }
     } catch (e) {
-      print("❌ Error updating profile: $e");
+      print("❌ Error updating current: $e");
       throw e;
     }
   }
 
-  // ตรวจสอบว่ามีข้อมูลผู้ใช้นี้ใน Firestore หรือไม่
-  Future<bool> checkPostExists(String postId) async {
-    DocumentSnapshot postDoc =
-        await _firestore.collection("post").doc(postId).get();
-    return postDoc.exists;
-  }
-
-  // ดึงข้อมูลผู้ใช้จาก Firestore
-  Future<Map<String, dynamic>?> fetchPostData(String postId) async {
+  // 🔹 ฟังก์ชันสำหรับดึงข้อมูลโพสต์
+  Future<Map<String, dynamic>?> fetchPostData(
+      String postId, bool isPrivate) async {
     try {
-      DocumentSnapshot doc =
-          await _firestore.collection('post').doc(postId).get();
-
+      DocumentSnapshot doc;
+      if (isPrivate) {
+        doc = await _firestore.collection('postsecret').doc(postId).get();
+      } else {
+        doc = await _firestore.collection('post').doc(postId).get();
+      }
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>;
       } else {
@@ -115,76 +146,62 @@ class PostService {
   }
 
   Future<List<Map<String, dynamic>>> fetchUserPosts(String uid) async {
-  final userRef = _firestore.collection('User').doc(uid);
-  final postRef = _firestore.collection('post');
-  final currentUserUid = _firebaseAuth.currentUser!.uid;
+    final postRef = _firestore.collection('post');
+    final postsecretRef = _firestore.collection('postsecret');
 
-  // ดึงข้อมูล user profile
-  final userSnap = await userRef.get();
-  final isCloseFriend = (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
+    try {
+      final List<QuerySnapshot> snapshots = [];
 
-  Query query;
+      try {
+        snapshots.add(await postRef.where('ownerId', isEqualTo: uid).get());
+      } catch (e) {
+        print("⚠️ Skip 'post' collection due to error: $e");
+      }
 
-  if (currentUserUid == uid) {
-    // 🔵 เป็นเจ้าของโพสต์ → เห็นทุกโพสต์
-    query = postRef
-        .where('ownerId', isEqualTo: uid)
-        .where('isPrivate', whereIn: [true, false])
-        .orderBy('timestamp', descending: true);
-  } else if (isCloseFriend) {
-    // 🟢 เป็น close friend → เห็นทั้ง public + private
-    // ต้องสร้าง index สำหรับ: ownerId == xxx, isPrivate in [true, false], orderBy timestamp
-    query = postRef
-        .where('ownerId', isEqualTo: uid)
-        .where('isPrivate', whereIn: [true, false])
-        .orderBy('timestamp', descending: true);
-  } else {
-    // 🔴 คนทั่วไป → เห็นแค่ public
-    // ต้องสร้าง index: ownerId == xxx, isPrivate == false, orderBy timestamp
-    query = postRef
-        .where('ownerId', isEqualTo: uid)
-        .where('isPrivate', isEqualTo: false)
-        .orderBy('timestamp', descending: true);
+      try {
+        snapshots.add(await postsecretRef.where('ownerId', isEqualTo: uid).get());
+      } catch (e) {
+        print("⚠️ Skip 'secretpost' collection due to error: $e");
+      }
+
+      final posts = snapshots.expand((snapshot) =>
+        snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>)
+      ).toList();
+
+      posts.sort((a, b) => (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
+
+      return posts;
+    } catch (e) {
+      print("Error fetching posts: $e");
+      return [];
+    }
   }
 
-  try {
-    final querySnapshot = await query.get();
-    return querySnapshot.docs
-        .map((doc) => doc.data() as Map<String, dynamic>)
-        .toList();
-  } catch (e) {
-    print("Error fetching posts: $e");
-    return [];
+  Future<List<Map<String, dynamic>>> fetchFollowingPosts() async {
+    final currentUser = _firebaseAuth.currentUser;
+    if (currentUser == null) return [];
+
+    try {
+      final userSnapshot =
+          await _firestore.collection('user').doc(currentUser.uid).get();
+      final following =
+          List<String>.from(userSnapshot.data()?['following'] ?? []);
+      // เพิ่ม uid ของผู้ใช้ปัจจุบันในรายการโพสต์ที่จะแสดง
+      following.add(currentUser.uid);
+
+      final futures = following.map((uid) => fetchUserPosts(uid));
+      final results = await Future.wait(futures);
+
+      List<Map<String, dynamic>> post =
+          results.expand((postList) => postList).toList();
+
+      post.sort((a, b) =>
+        (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
+
+      return post;
+    } catch (e) {
+      print("Error fetching following posts: $e");
+      return [];
+    }
   }
-}
-
-Future<List<Map<String, dynamic>>> fetchFollowingPosts() async {
-  final currentUser = _firebaseAuth.currentUser;
-  if (currentUser == null) return [];
-
-  try {
-    // ดึง list following ของ current user
-    final userSnapshot = await _firestore.collection('User').doc(currentUser.uid).get();
-    final following = List<String>.from(userSnapshot.data()?['following'] ?? []);
-
-    // รวมตัวเองไว้ด้วย (กรณีอยากเห็นโพสต์ตัวเองใน feed)
-    following.add(currentUser.uid);
-
-    // ดึงโพสต์ของทุกคนพร้อมกัน
-    final futures = following.map((uid) => fetchUserPosts(uid));
-    final results = await Future.wait(futures);
-
-    // รวมโพสต์ทั้งหมด
-    List<Map<String, dynamic>> allPosts = results.expand((postList) => postList).toList();
-
-    // เรียงตาม timestamp ใหม่สุด → เก่าสุด
-    allPosts.sort((a, b) => (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
-
-    return allPosts;
-  } catch (e) {
-    print("Error fetching following posts: $e");
-    return [];
-  }
-}
-
 }

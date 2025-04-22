@@ -54,7 +54,7 @@ class _NewPostPageState extends State<NewPostPage> {
   Future<void> _loadCloseFriends() async {
     try {
       List<String> closeFriends =
-          await _userService.getCloseFriends(widget.uid!);
+          await _userService.getCloseFriendsName(widget.uid!);
       setState(() {
         _closeFriends = closeFriends;
       });
@@ -228,21 +228,22 @@ class _NewPostPageState extends State<NewPostPage> {
     setState(() => _isLoading = true);
 
     try {
-      final String postId = '${DateTime.now().millisecondsSinceEpoch}';
+      final String postId = '${DateTime.now().millisecondsSinceEpoch}_${widget.uid}';
 
       final String imageUrl = await _postService.uploadPostPic(
         _imageBytes!,
         postId,
+        _isPrivate,
       );
 
       await _postService.addPost(
         postId: postId,
-        isPrivate: _isPrivate,
-        picPath: 'posts_pic/$postId',
+        picName: '$postId',
         context: _captionController.text.trim(),
+        isPrivate: _isPrivate,
       );
 
-      await _postService.updateUserPost(uId: widget.uid!, postId: postId);
+      await _postService.updateUserPost(uId: widget.uid!, postId: postId, isPrivate: _isPrivate);
 
       if (mounted) {
         Navigator.of(context).pushReplacement(

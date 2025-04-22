@@ -17,27 +17,7 @@ class StorageService extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isUploading => _isUploading;
 
-  /// Fetches all images from Firebase Storage
-  Future<void> fetchImages() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final ListResult result = await _firebaseStorage.ref('uploads').listAll();
-      _imgUrls.clear();
-      for (var ref in result.items) {
-        final url = await ref.getDownloadURL();
-        _imgUrls.add(url);
-      }
-    } catch (e) {
-      debugPrint('Error fetching images: $e');
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> uploadImage() async {
+  Future<void> uploadImage(bool isPrivate, String postId) async {
     final picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
@@ -47,7 +27,12 @@ class StorageService extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      Reference ref = _firebaseStorage.ref('posts_pic/${DateTime.now().millisecondsSinceEpoch}');
+      Reference ref;
+      if (isPrivate) {
+        ref = _firebaseStorage.ref('secret_post_pic/$postId');
+      } else {
+        ref = _firebaseStorage.ref('post_pic/$postId');
+      }
 
       if (kIsWeb) {
         Uint8List imageData = await pickedFile.readAsBytes();
@@ -67,25 +52,5 @@ class StorageService extends ChangeNotifier {
       notifyListeners();
       debugPrint('Upload Error: $e');
     }
-  }
-
-  /// Deletes an image from Firebase Storage
-  Future<void> deleteImage(String url) async {
-    try {
-      _imgUrls.remove(url);
-
-      final String path = _extractPathFromUrl(url);
-      await _firebaseStorage.ref(path).delete();
-    } catch (e) {
-      print("❌ Error deleting image: $e");
-    }
-
-    notifyListeners();
-  }
-
-  /// Extracts the file path from a Firebase Storage URL
-  String _extractPathFromUrl(String url) {
-    Uri uri = Uri.parse(url);
-    return Uri.decodeComponent(uri.pathSegments.last);
   }
 }

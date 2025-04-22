@@ -34,12 +34,8 @@ class UserService {
   }
 
   Future<void> toggleFollowUser(String profileUid, String currentUid) async {
-    final userDoc = _firestore.collection('User').doc(profileUid);
-    final currentUserDoc = _firestore.collection('User').doc(currentUid);
+    final currentUserDoc = _firestore.collection('user').doc(currentUid);
 
-    // if userDoc private, TODO NA
-
-    // if userDoc Public
     final currentUserData = await currentUserDoc.get();
     List followers = currentUserData.data()?['following'] ?? [];
 
@@ -61,7 +57,7 @@ class UserService {
     }
 
     final querySnapshot = await _firestore
-        .collection("User")
+        .collection("user")
         .where('name', isGreaterThanOrEqualTo: query)
         .where('name', isLessThanOrEqualTo: query + '\uf8ff')
         .get();
@@ -79,7 +75,7 @@ class UserService {
     try {
       // ดึงข้อมูลจาก collection "User" โดยใช้ uid ของผู้โพสต์
       DocumentSnapshot userDoc =
-          await _firestore.collection('User').doc(uid).get();
+          await _firestore.collection('user').doc(uid).get();
 
       if (userDoc.exists) {
         return userDoc['name'] ?? 'Unknown'; // ถ้าไม่พบ name ให้แสดง 'Unknown'
@@ -95,7 +91,7 @@ class UserService {
   Future<String> getUserBioByUid(String uid) async {
     try {
       DocumentSnapshot userDoc =
-          await _firestore.collection('User').doc(uid).get();
+          await _firestore.collection('user').doc(uid).get();
       return userDoc['bio'] ??
           'No bio available'; // ถ้าไม่มี bio ให้แสดงข้อความเริ่มต้น
     } catch (e) {
@@ -104,12 +100,14 @@ class UserService {
   }
 
   // ✅ ฟังก์ชันใหม่สำหรับดึง Widget แสดงรูปโปรไฟล์จาก UID
-  Future<Widget> displayUserProfileImage(String uid, {double radius = 20}) async {
+  Future<Widget> displayUserProfileImage(String uid,
+      {double radius = 20}) async {
     try {
       DocumentSnapshot userDoc =
-          await _firestore.collection('User').doc(uid).get();
+          await _firestore.collection('user').doc(uid).get();
       String? userPicPath = userDoc['user_pic'];
-      String downloadUrl = await _firebaseStorage.ref(userPicPath).getDownloadURL();
+      String downloadUrl =
+          await _firebaseStorage.ref(userPicPath).getDownloadURL();
       return CircleAvatar(
         radius: radius,
         backgroundImage: NetworkImage(downloadUrl),
@@ -119,8 +117,8 @@ class UserService {
       print("❌ Error loading profile image for UID $uid: $e");
       return CircleAvatar(
         radius: radius,
-        backgroundImage:
-            const AssetImage('assets/images/default_profile.jpg'), // ใช้รูป default
+        backgroundImage: const AssetImage(
+            'assets/default_profile_pic.png'), // ใช้รูป default
         backgroundColor: Colors.grey.shade300,
       );
     }
@@ -145,7 +143,7 @@ class UserService {
     required String bio,
   }) async {
     try {
-      await _firestore.collection("User").doc(uid).set({
+      await _firestore.collection("user").doc(uid).set({
         'name': name.toLowerCase().trim(),
         'bio': bio.trim(),
       }, SetOptions(merge: true)); // ✅ ใช้ merge เพื่ออัปเดตเฉพาะฟิลด์ที่ส่งมา
@@ -159,7 +157,7 @@ class UserService {
   Future<void> saveUserPic(String userId, String filePath) async {
     try {
       // บันทึก path ของรูปภาพลงใน Firestore
-      await _firestore.collection("User").doc(userId).update({
+      await _firestore.collection("user").doc(userId).update({
         'user_pic': filePath,
       });
     } catch (e) {
@@ -171,7 +169,7 @@ class UserService {
   // ตรวจสอบว่ามีข้อมูลผู้ใช้นี้ใน Firestore หรือไม่
   Future<bool> checkUserExists(String userId) async {
     DocumentSnapshot userDoc =
-        await _firestore.collection("User").doc(userId).get();
+        await _firestore.collection("user").doc(userId).get();
     return userDoc.exists;
   }
 
@@ -181,12 +179,16 @@ class UserService {
     required String username,
     String? userPic,
   }) async {
-    await _firestore.collection("User").doc(userId).set({
+    await _firestore.collection("user").doc(userId).set({
       'name': username.toLowerCase().trim(),
-      'closefriend': [],
       'following': [],
       'post': [],
       'user_pic': userPic ?? "user_pic/UserPicDef.jpg"
+    });
+    await _firestore.collection("usersecret").doc(userId).set({
+      'email': "",
+      'closefriend': [],
+      'post': [],
     });
   }
 
@@ -194,7 +196,7 @@ class UserService {
   Future<Map<String, dynamic>?> fetchUserData(String userId) async {
     try {
       DocumentSnapshot doc =
-          await _firestore.collection('User').doc(userId).get();
+          await _firestore.collection('user').doc(userId).get();
 
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>;
@@ -210,19 +212,28 @@ class UserService {
 
   Future<void> createUser({required String uid, String? email}) async {
     try {
-      DocumentReference userRef = _firestore.collection("User").doc(uid);
+      DocumentReference userRef = _firestore.collection("user").doc(uid);
+      DocumentReference userSecretRef =
+          _firestore.collection("usersecret").doc(uid);
 
       DocumentSnapshot userDoc = await userRef.get();
+      DocumentSnapshot userSecretDoc = await userSecretRef.get();
+
       if (!userDoc.exists) {
         await userRef.set({
           'name': "Unknown User",
-          'email': email ?? "No email",
           'uid': uid,
           'following': [],
-          'closefriend': [],
           'post': [],
           'user_pic': "user_pic/UserPicDef.jpg",
           'bio': "",
+        });
+      }
+      if (!userSecretDoc.exists) {
+        await userSecretRef.set({
+          'email': "",
+          'closefriend': [],
+          'post': [],
         });
       }
     } catch (e) {
@@ -230,43 +241,54 @@ class UserService {
     }
   }
 
-  Future<int> countVisiblePosts(String uid) async {
-    final userRef = _firestore.collection('User').doc(uid);
-    final postRef = _firestore.collection('post');
+  Future<int> countVisiblePosts(String targetUId) async {
+    final currentUser = _firebaseAuth.currentUser;
+    if (currentUser == null) return 0;
 
-    final userSnap = await userRef.get();
-    final currentUserUid = _firebaseAuth.currentUser!.uid;
+    try {
+      final postRef = _firestore.collection('post');
+      final postSecretRef = _firestore.collection('postsecret');
 
-    final bool isCloseFriend =
-        (userSnap.data()?['closefriend'] ?? []).contains(currentUserUid);
+      int postCount = 0;
+      int postSecretCount = 0;
 
-    Query query = postRef.where('ownerId', isEqualTo: uid);
+      try {
+        final postSnapshot =
+            await postRef.where('ownerId', isEqualTo: targetUId).get();
+        postCount = postSnapshot.docs.length;
+      } catch (e) {
+        print('Error fetching public posts: $e');
+      }
 
-    if (currentUserUid == uid || isCloseFriend) {
-      query = query.where('isPrivate', whereIn: [true, false]);
-    } else {
-      query = query.where('isPrivate', isEqualTo: false);
+      try {
+        final postSecretSnapshot =
+            await postSecretRef.where('ownerId', isEqualTo: targetUId).get();
+        postSecretCount = postSecretSnapshot.docs.length;
+      } catch (e) {
+        print('Error fetching secret posts: $e');
+      }
+
+      return postCount + postSecretCount;
+    } catch (e) {
+      print('Unexpected error counting posts: $e');
+      return 0;
     }
-
-    final AggregateQuerySnapshot snapshot = await query.count().get();
-    final postCount = snapshot.count;
-
-    return Future.value(postCount);
   }
 
-  Future<List<String>> getCloseFriends(String uid) async {
+  Future<List<String>> getCloseFriendsName(String uid) async {
     try {
       DocumentSnapshot userDoc =
-          await _firestore.collection('User').doc(uid).get();
+          await _firestore.collection('usersecret').doc(uid).get();
 
       List<String> closeFriendsUid =
           List<String>.from(userDoc['closefriend'] ?? []);
 
-      List<String> closeFriendsNames = [];
-      for (String closeFriendUid in closeFriendsUid) {
-        String name = await getUserNameByUid(closeFriendUid);
-        closeFriendsNames.add(name);
-      }
+      final users = await _firestore
+          .collection('user')
+          .where(FieldPath.documentId, whereIn: closeFriendsUid)
+          .get();
+      final closeFriendsNames =
+          users.docs.map((doc) => doc['name'] as String).toList();
 
       return closeFriendsNames;
     } catch (e) {
@@ -278,7 +300,7 @@ class UserService {
   Future<List<String>> getCloseFriendsUid(String uid) async {
     try {
       DocumentSnapshot userDoc =
-          await _firestore.collection('User').doc(uid).get();
+          await _firestore.collection('usersecret').doc(uid).get();
 
       List<String> closeFriendsUid =
           List<String>.from(userDoc['closefriend'] ?? []);
@@ -292,45 +314,47 @@ class UserService {
 
   Future<List<String>> getNotCloseFriendsUser(String uid) async {
     try {
-      QuerySnapshot snapshot = await _firestore.collection('User').get();
-
       List<String> closeFriendUids = await getCloseFriendsUid(uid);
 
-      List<String> allUserNames = [];
+      QuerySnapshot snapshot = await _firestore.collection('user').get();
 
-      for (var doc in snapshot.docs) {
-        String userId = doc.id;
-        if (userId != uid && !closeFriendUids.contains(userId)) {
-          String userName = await getUserNameByUid(userId);
-          allUserNames.add(userName);
-        }
-      }
+      final notCloseFriendDocs = snapshot.docs.where((doc) {
+        final userId = doc.id;
+        return userId != uid && !closeFriendUids.contains(userId);
+      });
 
-      return allUserNames;
+      List<String> notCloseFriendNames =
+          notCloseFriendDocs.map((doc) => doc['name'] as String).toList();
+
+      return notCloseFriendNames;
     } catch (e) {
-      throw Exception("Error getting all users: $e");
+      throw Exception("Error getting not close friends: $e");
     }
   }
 
-  Future<void> addCloseFriends(
-      String uid, List<String> selectedUserNames) async {
+  Future<void> addCloseFriends(String uid, List<String> selectedUserName) async {
     try {
-      DocumentReference userRef = _firestore.collection('User').doc(uid);
+      print(selectedUserName);
+      final userRef = _firestore.collection('usersecret').doc(uid);
 
-      List<String> selectedUserUids = [];
-
-      for (String name in selectedUserNames) {
-        QuerySnapshot snapshot = await _firestore
-            .collection('User')
-            .where('name', isEqualTo: name)
-            .get();
-
-        if (snapshot.docs.isNotEmpty) {
-          String selectedUid = snapshot.docs.first.id;
-          selectedUserUids.add(selectedUid);
-        }
+      if (selectedUserName.isEmpty) {
+        throw Exception("No selected users to add.");
       }
 
+      // 🔹 ดึงข้อมูลทั้งหมดในครั้งเดียว
+      final snapshot = await _firestore
+          .collection('user')
+          .where('name', whereIn: selectedUserName)
+          .get();
+
+      // 🔹 map เอา docId มาเก็บ
+      final selectedUserUids = snapshot.docs.map((doc) => doc.id).toList();
+
+      if (selectedUserUids.isEmpty) {
+        throw Exception("No matching users found to add as close friends.");
+      }
+
+      // 🔹 อัปเดต field
       await userRef.update({
         'closefriend': FieldValue.arrayUnion(selectedUserUids),
       });
@@ -342,7 +366,7 @@ class UserService {
   Future<void> updateBio(String uid, String newBio) async {
     try {
       // บันทึก path ของรูปภาพลงใน Firestore
-      await _firestore.collection("User").doc(uid).update({
+      await _firestore.collection("user").doc(uid).update({
         'bio': newBio,
       });
     } catch (e) {
@@ -355,7 +379,7 @@ class UserService {
   Future<List<String>> getFollowingUsers(currentUserUid) async {
     try {
       DocumentSnapshot userDoc =
-          await _firestore.collection('User').doc(currentUserUid).get();
+          await _firestore.collection('user').doc(currentUserUid).get();
 
       if (userDoc.exists) {
         List<dynamic> followingList = userDoc['following'] ?? [];
@@ -376,6 +400,7 @@ class UserService {
       return [];
     }
   }
+
   Future<Widget> displayUserProfilePic(String userPicPath) async {
     try {
       // Fetch the image URL from Firebase Storage using the given path

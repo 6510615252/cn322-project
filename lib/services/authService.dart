@@ -7,7 +7,14 @@ import 'package:outstragram/services/userService.dart';
 class Authservice {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final UserService _userService = UserService(); // 💡 ใช้ UserService
+  final UserService _userService = UserService();
+  final FirebaseFirestore _firestore =
+    FirebaseFirestore.instance.databaseId != null
+        ? FirebaseFirestore.instanceFor(
+          app: Firebase.app(),
+          databaseId: 'dbmain',
+        )
+        : FirebaseFirestore.instance;
 
   User? get currentUser => _firebaseAuth.currentUser;
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -65,11 +72,9 @@ class Authservice {
       // ตรวจสอบถ้ามี user ใหม่ถึงจะสร้าง Firestore document
       final User? user = userCredential.user;
       if (user != null) {
-        final DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('User')
+        final DocumentSnapshot userDoc = await _firestore.collection('user')
             .doc(user.uid)
             .get();
-
         if (!userDoc.exists) {
           // ถ้ายังไม่มี doc ใน Firestore -> สร้างใหม่
           await _userService.createUser(uid: user.uid, email: user.email ?? '');

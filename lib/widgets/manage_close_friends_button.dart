@@ -34,7 +34,7 @@ class _ManageCloseFriendsButtonState extends State<ManageCloseFriendsButton> {
   Future<void> _loadCloseFriends() async {
     try {
       List<String> closeFriends =
-          await _userService.getCloseFriends(widget.uid!);
+          await _userService.getCloseFriendsName(widget.uid!);
       if (mounted) {
         setState(() {
           _closeFriends = closeFriends;
