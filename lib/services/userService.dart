@@ -277,20 +277,17 @@ class UserService {
 
   Future<List<String>> getCloseFriendsName(String uid) async {
     try {
-      DocumentSnapshot userDoc =
-          await _firestore.collection('usersecret').doc(uid).get();
+      final userDoc = await _firestore.collection('usersecret').doc(uid).get();
+      final closeFriendsUid = List<String>.from(userDoc['closefriend'] ?? []);
 
-      List<String> closeFriendsUid =
-          List<String>.from(userDoc['closefriend'] ?? []);
+      if (closeFriendsUid.isEmpty) return [];
 
-      final users = await _firestore
+      final userSnapshots = await _firestore
           .collection('user')
           .where(FieldPath.documentId, whereIn: closeFriendsUid)
           .get();
-      final closeFriendsNames =
-          users.docs.map((doc) => doc['name'] as String).toList();
 
-      return closeFriendsNames;
+      return userSnapshots.docs.map((doc) => doc['name'] as String).toList();
     } catch (e) {
       print("Error fetching close friends names: $e");
       return [];
@@ -332,34 +329,79 @@ class UserService {
     }
   }
 
-  Future<void> addCloseFriends(String uid, List<String> selectedUserName) async {
+  Future<void> addCloseFriends(String uid, List<String> selectedUserUids) async {
     try {
-      print(selectedUserName);
       final userRef = _firestore.collection('usersecret').doc(uid);
-
-      if (selectedUserName.isEmpty) {
-        throw Exception("No selected users to add.");
-      }
-
-      // 🔹 ดึงข้อมูลทั้งหมดในครั้งเดียว
-      final snapshot = await _firestore
-          .collection('user')
-          .where('name', whereIn: selectedUserName)
-          .get();
-
-      // 🔹 map เอา docId มาเก็บ
-      final selectedUserUids = snapshot.docs.map((doc) => doc.id).toList();
-
-      if (selectedUserUids.isEmpty) {
-        throw Exception("No matching users found to add as close friends.");
-      }
-
-      // 🔹 อัปเดต field
       await userRef.update({
         'closefriend': FieldValue.arrayUnion(selectedUserUids),
       });
     } catch (e) {
       throw Exception("Error adding close friends: $e");
+    }
+  }
+
+  Future<List<Map<String, String>>> getFollowingUsersWithUid(String currentUserUid) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('user').doc(currentUserUid).get();
+
+      if (userDoc.exists) {
+        List<dynamic> followingList = userDoc['following'] ?? [];
+
+        List<Map<String, String>> followingUsers = [];
+
+        for (String uid in followingList) {
+          String userName = await getUserNameByUid(uid);
+          followingUsers.add({'uid': uid, 'name': userName});
+        }
+
+        return followingUsers;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print("Error getting following users with UID: $e");
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getFollowingWithCloseFriendStatus(String uid) async {
+    try {
+      DocumentSnapshot userDoc =
+          await _firestore.collection('user').doc(uid).get();
+      DocumentSnapshot secretDoc =
+          await _firestore.collection('usersecret').doc(uid).get();
+
+      List<String> following = List<String>.from(userDoc['following'] ?? []);
+      List<String> closefriends = List<String>.from(secretDoc['closefriend'] ?? []);
+
+      List<Map<String, dynamic>> usersInfo = [];
+
+      for (String userUid in following) {
+        String name = await getUserNameByUid(userUid);
+        bool isCloseFriend = closefriends.contains(userUid);
+
+        usersInfo.add({
+          'uid': userUid,
+          'name': name,
+          'isCloseFriend': isCloseFriend,
+        });
+      }
+
+      return usersInfo;
+    } catch (e) {
+      print("Error fetching following with closefriend status: $e");
+      return [];
+    }
+  }
+
+  Future<void> setCloseFriends(String uid, List<String> selectedUserUids) async {
+    try {
+      final userRef = _firestore.collection('usersecret').doc(uid);
+      await userRef.update({'closefriend': selectedUserUids});
+    } catch (e) {
+      print("Error setting close friends: $e");
+      throw e;
     }
   }
 

@@ -86,12 +86,18 @@ class _ManageCloseFriendsButtonState extends State<ManageCloseFriendsButton> {
   }
 
   void _showAddCloseFriendsDialog() async {
-    List<String> selectedUsers = [];
+    List<String> selectedUids = [];
 
-    List<String> followingUsers =
-        await _userService.getFollowingUsers(widget.uid);
+    List<Map<String, dynamic>> followingUsers =
+        await _userService.getFollowingWithCloseFriendStatus(widget.uid!);
 
-    if (!mounted) return; // Check if the widget is still in the tree
+    if (!mounted) return;
+
+    // เริ่มต้นเลือกคนที่เป็น closefriend อยู่แล้ว
+    selectedUids = followingUsers
+        .where((user) => user['isCloseFriend'] == true)
+        .map((user) => user['uid'] as String)
+        .toList();
 
     showDialog(
       context: context,
@@ -104,7 +110,7 @@ class _ManageCloseFriendsButtonState extends State<ManageCloseFriendsButton> {
                 children: [
                   Icon(Icons.people_alt, color: AppTheme.tealColor),
                   const SizedBox(width: 10),
-                  const Text("Add Close Friends"),
+                  const Text("Manage Close Friends"),
                 ],
               ),
               content: Container(
@@ -116,17 +122,19 @@ class _ManageCloseFriendsButtonState extends State<ManageCloseFriendsButton> {
                     : SingleChildScrollView(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
-                          children: followingUsers.map((user) {
+                          children: followingUsers.map((userMap) {
+                            String uid = userMap['uid'];
+                            String name = userMap['name'];
                             return CheckboxListTile(
-                              title: Text(user),
-                              value: selectedUsers.contains(user),
+                              title: Text(name),
+                              value: selectedUids.contains(uid),
                               onChanged: (bool? value) {
                                 setStateDialog(() {
                                   if (value != null) {
                                     if (value) {
-                                      selectedUsers.add(user);
+                                      selectedUids.add(uid);
                                     } else {
-                                      selectedUsers.remove(user);
+                                      selectedUids.remove(uid);
                                     }
                                   }
                                 });
@@ -140,17 +148,15 @@ class _ManageCloseFriendsButtonState extends State<ManageCloseFriendsButton> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
                     foregroundColor: AppTheme.navyColor,
                   ),
                   child: const Text("Cancel"),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    _addToCloseFriends(selectedUsers);
+                  onPressed: () async {
+                    await _userService.setCloseFriends(widget.uid!, selectedUids);
                     Navigator.of(context).pop();
                     _loadCloseFriends();
                   },
@@ -158,7 +164,7 @@ class _ManageCloseFriendsButtonState extends State<ManageCloseFriendsButton> {
                     backgroundColor: AppTheme.navyColor,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text("Done"),
+                  child: const Text("Save"),
                 ),
               ],
             );

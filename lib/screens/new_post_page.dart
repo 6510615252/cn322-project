@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:outstragram/services/postService.dart';
 import 'package:outstragram/services/userService.dart';
 import 'package:outstragram/screens/home_page.dart';
+import 'package:outstragram/widgets/manage_close_friends_button.dart';
 import 'package:outstragram/widgets/widget_tree.dart';
 
 // ธีมสีที่กำหนด
@@ -77,121 +78,6 @@ class _NewPostPageState extends State<NewPostPage> {
     }
   }
 
-  Future<void> _addToCloseFriends(List<String> selectedUsers) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      await _userService.addCloseFriends(widget.uid!, selectedUsers);
-
-      setState(() {
-        _closeFriends.addAll(selectedUsers);
-        _allUsers.removeWhere((user) => selectedUsers.contains(user));
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Close friends updated successfully!"),
-          backgroundColor: AppTheme.navyColor,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error adding close friends: $e"),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _showAddCloseFriendsDialog() async {
-    List<String> selectedUsers = [];
-
-    // คืนค่าผู้ใช้ที่เราได้ติดตาม
-    List<String> followingUsers =
-        await _userService.getFollowingUsers(widget.uid);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              backgroundColor: AppTheme.creamColor,
-              title: Row(
-                children: [
-                  Icon(Icons.people_alt, color: AppTheme.tealColor),
-                  const SizedBox(width: 10),
-                  const Text("Add Close Friends"),
-                ],
-              ),
-              content: Container(
-                width: double.maxFinite,
-                child: followingUsers.isEmpty
-                    ? const Center(
-                        child: Text("You are not following any users."),
-                      )
-                    : SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: followingUsers.map((user) {
-                            return CheckboxListTile(
-                              title: Text(user),
-                              value: selectedUsers.contains(user),
-                              onChanged: (bool? value) {
-                                setStateDialog(() {
-                                  if (value != null) {
-                                    if (value) {
-                                      selectedUsers.add(user);
-                                    } else {
-                                      selectedUsers.remove(user);
-                                    }
-                                  }
-                                });
-                              },
-                              activeColor: AppTheme.tealColor,
-                              checkColor: Colors.white,
-                            );
-                          }).toList(),
-                        ),
-                      ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTheme.navyColor,
-                  ),
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _addToCloseFriends(selectedUsers);
-                    Navigator.of(context).pop();
-                    _loadAllUsers();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.navyColor,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text("Done"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -228,7 +114,8 @@ class _NewPostPageState extends State<NewPostPage> {
     setState(() => _isLoading = true);
 
     try {
-      final String postId = '${DateTime.now().millisecondsSinceEpoch}_${widget.uid}';
+      final String postId =
+          '${DateTime.now().millisecondsSinceEpoch}_${widget.uid}';
 
       final String imageUrl = await _postService.uploadPostPic(
         _imageBytes!,
@@ -243,7 +130,8 @@ class _NewPostPageState extends State<NewPostPage> {
         isPrivate: _isPrivate,
       );
 
-      await _postService.updateUserPost(uId: widget.uid!, postId: postId, isPrivate: _isPrivate);
+      await _postService.updateUserPost(
+          uId: widget.uid!, postId: postId, isPrivate: _isPrivate);
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -621,19 +509,13 @@ class _NewPostPageState extends State<NewPostPage> {
                                 ],
                               ),
                             ),
-                            if (_isPrivate)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 16.0, bottom: 8.0),
-                                child: TextButton.icon(
-                                  onPressed: _showAddCloseFriendsDialog,
-                                  icon: Icon(Icons.person_add,
-                                      color: AppTheme.tealColor),
-                                  label: Text("Manage Close Friends",
-                                      style:
-                                          TextStyle(color: AppTheme.tealColor)),
-                                ),
+                            if (_isPrivate) ...[
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ManageCloseFriendsButton(),
                               ),
+                            ]
                           ],
                         ),
                       ),

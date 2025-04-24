@@ -21,7 +21,6 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-
 class _ProfilePageState extends State<ProfilePage> {
   final User? currentUser = FirebaseAuth.instance.currentUser;
   final UserService userService = UserService();
@@ -46,10 +45,10 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       isLoading = true;
     });
-    
+
     await fetchUserData();
     await _countPosts();
-    
+
     setState(() {
       isLoading = false;
     });
@@ -114,7 +113,7 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     }
-    
+
     setState(() {
       isEditingBio = false;
     });
@@ -148,7 +147,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       context: context,
                       builder: (context) => AlertDialog(
                         title: const Text("Sign Out"),
-                        content: const Text("Are you sure you want to sign out?"),
+                        content:
+                            const Text("Are you sure you want to sign out?"),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
@@ -156,12 +156,13 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            child: const Text("Sign Out", style: TextStyle(color: Colors.red)),
+                            child: const Text("Sign Out",
+                                style: TextStyle(color: Colors.red)),
                           ),
                         ],
                       ),
                     );
-                    
+
                     if (shouldLogout == true) {
                       await FirebaseAuth.instance.signOut();
                     }
@@ -171,7 +172,8 @@ class _ProfilePageState extends State<ProfilePage> {
             : [],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.tealColor))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.tealColor))
           : userData == null
               ? const Center(child: Text("User not found"))
               : RefreshIndicator(
@@ -245,8 +247,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     child: ClipOval(
-                      child: profilePicSnapshot.data ?? 
-                        Image.asset('assets/default_profile.png', fit: BoxFit.cover),
+                      child: profilePicSnapshot.data ??
+                          Image.asset('assets/default_profile.png',
+                              fit: BoxFit.cover),
                     ),
                   );
                 },
@@ -258,8 +261,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatColumn(postCount.toString(), "Posts"),
-                    _buildStatColumn((userData?['followers']?.length ?? 0).toString(), "Followers"),
-                    _buildStatColumn((userData?['following']?.length ?? 0).toString(), "Following"),
+                    _buildStatColumn(
+                        (userData?['followers']?.length ?? 0).toString(),
+                        "Followers"),
+                    _buildStatColumn(
+                        (userData?['following']?.length ?? 0).toString(),
+                        "Following"),
                   ],
                 ),
               ),
@@ -267,11 +274,11 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 16),
           // Follow/Unfollow button
-           if (isMyProfile) ...[
+          if (isMyProfile) ...[
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
-              child: ManageCloseFriendsButton(), // แทนที่ OutlinedButton
+              child: ManageCloseFriendsButton(),
             ),
           ],
           if (!isMyProfile)
@@ -280,13 +287,16 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ElevatedButton(
                 onPressed: toggleFollow,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isFollowing ? Colors.white : AppTheme.tealColor,
-                  foregroundColor: isFollowing ? AppTheme.tealColor : Colors.white,
+                  backgroundColor:
+                      isFollowing ? Colors.white : AppTheme.tealColor,
+                  foregroundColor:
+                      isFollowing ? AppTheme.tealColor : Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                     side: BorderSide(
-                      color: isFollowing ? AppTheme.tealColor : Colors.transparent,
+                      color:
+                          isFollowing ? AppTheme.tealColor : Colors.transparent,
                     ),
                   ),
                   elevation: isFollowing ? 0 : 2,
@@ -368,63 +378,64 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 8),
           isEditingBio
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextField(
-                    controller: bioController,
-                    maxLines: 3,
-                    maxLength: 150,
-                    keyboardType: TextInputType.multiline,
-                    textInputAction: TextInputAction.newline,
-                    decoration: InputDecoration(
-                      hintText: "Write something about yourself",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: AppTheme.tealColor),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
-                      contentPadding: const EdgeInsets.all(12),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            isEditingBio = false;
-                          });
-                        },
-                        child: const Text("Cancel"),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: _updateBio,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.tealColor,
-                          foregroundColor: Colors.white,
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextField(
+                      controller: bioController,
+                      maxLines: 3,
+                      maxLength: 150,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      decoration: InputDecoration(
+                        hintText: "Write something about yourself",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
                         ),
-                        child: const Text("Save"),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide:
+                              const BorderSide(color: AppTheme.tealColor),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        contentPadding: const EdgeInsets.all(12),
                       ),
-                    ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              isEditingBio = false;
+                            });
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: _updateBio,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.tealColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text("Save"),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Text(
+                  userData?['bio'] ?? "No bio available",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[800],
+                    height: 1.4,
                   ),
-                ],
-              )
-            : Text(
-                userData?['bio'] ?? "No bio available",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[800],
-                  height: 1.4,
                 ),
-              ),
         ],
       ),
     );
@@ -464,7 +475,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.photo_library_outlined, size: 48, color: Colors.grey[400]),
+                      Icon(Icons.photo_library_outlined,
+                          size: 48, color: Colors.grey[400]),
                       const SizedBox(height: 16),
                       Text(
                         "No posts yet",
@@ -497,7 +509,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 return FutureBuilder<Widget>(
                   future: postService.displayPostPic(postPicPath),
                   builder: (context, postPicSnapshot) {
-                    if (postPicSnapshot.connectionState == ConnectionState.waiting) {
+                    if (postPicSnapshot.connectionState ==
+                        ConnectionState.waiting) {
                       return Container(
                         color: Colors.grey[200],
                         child: const Center(
@@ -529,8 +542,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         tag: 'post_${posts[index]['id']}',
                         child: Container(
                           color: Colors.grey[200],
-                          child: postPicSnapshot.data ?? 
-                            const Center(child: Icon(Icons.error)),
+                          child: postPicSnapshot.data ??
+                              const Center(child: Icon(Icons.error)),
                         ),
                       ),
                     );
