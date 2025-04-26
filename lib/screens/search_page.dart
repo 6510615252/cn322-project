@@ -1,15 +1,15 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:outstragram/services/userService.dart';
 import 'ProfilePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-// เพิ่ม AppTheme สำหรับใช้ในหน้านี้
 class AppTheme {
-  static const Color creamColor = Color(0xFFF5F0DC);
-  static const Color navyColor = Color(0xFF363B5C);
-  static const Color tealColor = Color(0xFF8BB3A8);
+  static const Color creamColor = Color(0xFFFDFCFB);
+  static const Color navyColor = Color(0xFF607D8B);
+  static const Color tealColor = Color(0xFF80CBC4);
   static const Color lightGreenColor = Color(0xFFB4DBA0);
 }
 
@@ -38,9 +38,9 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.navyColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           "Search User",
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -65,23 +65,28 @@ class _SearchPageState extends State<SearchPage> {
               onChanged: (query) {
                 userService.searchUsers(query, updateSearchResults);
               },
+              style: GoogleFonts.poppins(),
               decoration: InputDecoration(
                 hintText: "Search by name",
-                hintStyle: TextStyle(color: AppTheme.navyColor.withOpacity(0.5)),
+                hintStyle: GoogleFonts.poppins(
+                    color: AppTheme.navyColor.withOpacity(0.5)),
                 filled: true,
                 fillColor: AppTheme.creamColor,
-                contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide(color: AppTheme.tealColor, width: 1.5),
+                  borderSide:
+                      const BorderSide(color: AppTheme.tealColor, width: 1.5),
                 ),
-                prefixIcon: Icon(Icons.search, color: AppTheme.tealColor),
+                prefixIcon: const Icon(Icons.search, color: AppTheme.tealColor),
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.clear, color: AppTheme.navyColor.withOpacity(0.5)),
+                  icon: Icon(Icons.clear,
+                      color: AppTheme.navyColor.withOpacity(0.5)),
                   onPressed: () {
                     _searchController.clear();
                     updateSearchResults([]);
@@ -91,7 +96,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           Expanded(
-            child: searchResults.isEmpty 
+            child: searchResults.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -104,7 +109,7 @@ class _SearchPageState extends State<SearchPage> {
                         const SizedBox(height: 16),
                         Text(
                           "Search for users",
-                          style: TextStyle(
+                          style: GoogleFonts.poppins(
                             fontSize: 16,
                             color: AppTheme.navyColor.withOpacity(0.6),
                           ),
@@ -117,7 +122,8 @@ class _SearchPageState extends State<SearchPage> {
                     itemBuilder: (context, index) {
                       final user = searchResults[index];
                       return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -130,45 +136,54 @@ class _SearchPageState extends State<SearchPage> {
                           ],
                         ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           title: Text(
                             user['name'],
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontWeight: FontWeight.bold,
                               color: AppTheme.navyColor,
                             ),
                           ),
                           leading: FutureBuilder<Widget>(
-                            future: userService.displayUserProfilePic(user['user_pic'] ?? "user_pic/UserPicDef.jpg"),
+                            future: userService.displayUserProfilePic(
+                                user['user_pic'] ??
+                                    "user_pic/UserPicDef.jpg"),
                             builder: (context, profilePicSnapshot) {
-                              if (profilePicSnapshot.connectionState == ConnectionState.waiting) {
+                              if (profilePicSnapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return CircleAvatar(
                                   radius: 25,
-                                  backgroundColor: AppTheme.tealColor.withOpacity(0.2),
-                                  child: SizedBox(
+                                  backgroundColor:
+                                      AppTheme.tealColor.withOpacity(0.2),
+                                  child: const SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(AppTheme.tealColor),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          AppTheme.tealColor),
                                     ),
                                   ),
                                 );
                               }
                               return CircleAvatar(
                                 radius: 25,
-                                backgroundColor: AppTheme.tealColor.withOpacity(0.2),
+                                backgroundColor:
+                                    AppTheme.tealColor.withOpacity(0.2),
                                 child: ClipOval(child: profilePicSnapshot.data),
                               );
                             },
                           ),
                           subtitle: FutureBuilder<String>(
-                            future: userService.getUserBioByUid(user['uid']),
+                            future:
+                                userService.getUserBioByUid(user['uid']),
                             builder: (context, bioSnapshot) {
-                              if (bioSnapshot.connectionState == ConnectionState.waiting) {
+                              if (bioSnapshot.connectionState ==
+                                  ConnectionState.waiting) {
                                 return Text(
                                   'Loading bio...',
-                                  style: TextStyle(
+                                  style: GoogleFonts.poppins(
                                     color: AppTheme.navyColor.withOpacity(0.4),
                                     fontSize: 12,
                                   ),
@@ -176,7 +191,7 @@ class _SearchPageState extends State<SearchPage> {
                               }
                               return Text(
                                 bioSnapshot.data ?? 'No bio available',
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   color: AppTheme.navyColor.withOpacity(0.7),
                                   fontSize: 12,
                                 ),
@@ -185,7 +200,7 @@ class _SearchPageState extends State<SearchPage> {
                               );
                             },
                           ),
-                          trailing: Icon(
+                          trailing: const Icon(
                             Icons.arrow_forward_ios,
                             color: AppTheme.tealColor,
                             size: 16,
@@ -194,7 +209,8 @@ class _SearchPageState extends State<SearchPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => ProfilePage(uid: user['uid']),
+                                builder: (context) =>
+                                    ProfilePage(uid: user['uid']),
                               ),
                             );
                           },

@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:outstragram/services/postService.dart';
 import 'package:outstragram/services/userService.dart';
-
-// Define AppTheme for use in this page
-class AppTheme {
-  static const Color creamColor = Color(0xFFF5F0DC);
-  static const Color navyColor = Color(0xFF363B5C);
-  static const Color tealColor = Color(0xFF8BB3A8);
-  static const Color lightGreenColor = Color(0xFFB4DBA0);
-}
 
 class Feed extends StatefulWidget {
   final PostService postService = PostService();
@@ -40,31 +33,28 @@ class _FeedState extends State<Feed> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.creamColor,
+      backgroundColor: const Color(0xFFFDFCFB), // พื้นหลังสีเดียวกับ LoginPage
       appBar: AppBar(
-        backgroundColor: AppTheme.navyColor,
-        elevation: 0,
-        title: const Text(
+        backgroundColor: const Color(0xFF80CBC4), // สีหลักที่ใช้ในปุ่ม login
+        elevation: 3,
+        centerTitle: true,
+        title: Text(
           'Feed',
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
+            fontSize: 20,
             color: Colors.white,
           ),
         ),
       ),
       body: RefreshIndicator(
         onRefresh: _refreshPosts,
-        color: AppTheme.tealColor,
+        color: const Color(0xFF80CBC4),
         child: FutureBuilder<List<Map<String, dynamic>>>(
           future: _postsFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(AppTheme.tealColor),
-                ),
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -72,18 +62,14 @@ class _FeedState extends State<Feed> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.photo_album_outlined,
-                      size: 70,
-                      color: AppTheme.navyColor.withOpacity(0.5),
-                    ),
+                    Icon(Icons.photo_album_outlined, size: 70, color: Colors.grey.shade400),
                     const SizedBox(height: 16),
                     Text(
                       "No posts available",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 18,
-                        color: AppTheme.navyColor,
                         fontWeight: FontWeight.w500,
+                        color: Colors.black54,
                       ),
                     ),
                   ],
@@ -94,177 +80,128 @@ class _FeedState extends State<Feed> {
             final posts = snapshot.data!;
 
             return ListView.builder(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16),
               itemCount: posts.length,
               itemBuilder: (context, index) {
                 final postData = posts[index];
                 final bool isPrivate = postData['isPrivate'] ?? false;
 
                 return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
+                  margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.navyColor.withOpacity(0.08),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header with user info
+                      // User Header
                       Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(14),
                         child: Row(
                           children: [
                             FutureBuilder<Widget>(
                               future: widget.userService.displayUserProfileImage(
                                 postData['ownerId'],
-                                radius: 20,
+                                radius: 24,
                               ),
                               builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
                                   return const CircleAvatar(
-                                    radius: 20,
-                                    child: SizedBox(
-                                      width: 15,
-                                      height: 15,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                            AppTheme.tealColor),
-                                      ),
-                                    ),
+                                    radius: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
                                   );
                                 }
-                                if (snapshot.hasError) {
-                                  return const CircleAvatar(
-                                    radius: 20,
-                                    child: Icon(Icons.error, size: 20),
-                                  );
-                                }
-                                return snapshot.data ??
-                                    const CircleAvatar(
-                                      radius: 20,
-                                      child: Icon(Icons.person),
-                                    );
+                                return snapshot.data ?? const CircleAvatar(radius: 24);
                               },
                             ),
                             const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                FutureBuilder<String>(
-                                  future: widget.userService
-                                      .getUserNameByUid(postData['ownerId']),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState ==
-                                        ConnectionState.waiting) {
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  FutureBuilder<String>(
+                                    future: widget.userService.getUserNameByUid(postData['ownerId']),
+                                    builder: (context, snapshot) {
                                       return Text(
-                                        'Loading...',
-                                        style: TextStyle(
-                                            color: AppTheme.navyColor
-                                                .withOpacity(0.5)),
+                                        snapshot.data ?? 'Unknown',
+                                        style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                        ),
                                       );
-                                    }
-                                    if (snapshot.hasError) {
-                                      return const Text('Error loading name');
-                                    }
-                                    return Text(
-                                      snapshot.data ?? 'Unknown',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.navyColor,
-                                      ),
-                                    );
-                                  },
-                                ),
-                                if (isPrivate)
-                                  Container(
-                                    margin: const EdgeInsets.only(top: 4),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          AppTheme.tealColor.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.lock_outline,
-                                          size: 12,
-                                          color: AppTheme.tealColor,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        const Text(
-                                          "Close Friend Only",
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: AppTheme.tealColor,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                    },
                                   ),
-                              ],
-                            ),
+                                  if (isPrivate)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.lock_outline, size: 14, color: Color(0xFF607D8B)),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            "Close Friend Only",
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 12,
+                                              color: const Color(0xFF607D8B),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            )
                           ],
                         ),
                       ),
 
-                      // Post Content
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
-                        child: Text(
-                          postData['context'] ?? 'No caption',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppTheme.navyColor.withOpacity(0.8),
+                      // Caption
+                      if (postData['context'] != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            postData['context'],
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
-                      ),
 
-                      // Post Image if available
+                      const SizedBox(height: 12),
+
+                      // Post Image
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          margin: const EdgeInsets.all(12),
-                          height: 200,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: AppTheme.navyColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: FutureBuilder<Widget>(
-                            future: widget.postService.displayPostPic(
-                                postData['pic'] ?? "user_pic/UserPicDef.jpg"),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-                              if (snapshot.hasError) {
-                                return const Center(
-                                  child: Icon(Icons.error),
-                                );
-                              }
-                              return ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: snapshot.data ?? const Icon(Icons.image),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(16),
+                          bottomRight: Radius.circular(16),
+                        ),
+                        child: FutureBuilder<Widget>(
+                          future: widget.postService.displayPostPic(postData['pic']),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Container(
+                                height: 200,
+                                color: Colors.grey.shade100,
+                                child: const Center(child: CircularProgressIndicator()),
                               );
-                            },
-                          ),
+                            }
+                            return snapshot.data ??
+                                Container(
+                                  height: 200,
+                                  color: Colors.grey.shade200,
+                                  child: const Center(child: Icon(Icons.image, size: 40)),
+                                );
+                          },
                         ),
                       ),
                     ],

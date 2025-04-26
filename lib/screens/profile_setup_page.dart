@@ -4,15 +4,14 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:outstragram/services/userService.dart';
 import 'package:outstragram/screens/home_page.dart';
-import 'package:outstragram/widgets/widget_tree.dart';
 
-// เพิ่ม AppTheme สำหรับใช้ในหน้านี้
 class AppTheme {
-  static const Color creamColor = Color(0xFFF5F0DC);
-  static const Color navyColor = Color(0xFF363B5C);
-  static const Color tealColor = Color(0xFF8BB3A8);
+  static const Color creamColor = Color(0xFFFDFCFB);
+  static const Color navyColor = Color(0xFF607D8B);
+  static const Color tealColor = Color(0xFF80CBC4);
   static const Color lightGreenColor = Color(0xFFB4DBA0);
 }
 
@@ -43,7 +42,6 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
     if (image != null) {
       final Uint8List imageBytes = await image.readAsBytes();
       setState(() {
@@ -53,30 +51,12 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   }
 
   Future<void> _saveUserData() async {
-    if (_nameController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty ||
+        _bioController.text.trim().isEmpty ||
+        _imageBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Please enter a display name"),
-          backgroundColor: AppTheme.navyColor,
-        ),
-      );
-      return;
-    }
-
-    if (_bioController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please write a short bio"),
-          backgroundColor: AppTheme.navyColor,
-        ),
-      );
-      return;
-    }
-
-    if (_imageBytes == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Please select a profile picture"),
+          content: Text("Please complete all fields", style: GoogleFonts.poppins()),
           backgroundColor: AppTheme.navyColor,
         ),
       );
@@ -86,20 +66,17 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     setState(() => _isLoading = true);
 
     try {
-      // Step 1: อัปโหลดรูปภาพไปยัง Firebase Storage
       final String imageUrl = await _userService.uploadProfilePic(
         _imageBytes!,
         '${widget.user.uid}_${DateTime.now().millisecondsSinceEpoch}',
       );
 
-      // Step 2: บันทึกข้อมูลผู้ใช้ใน Firestore
       await _userService.updateUserNameAndBio(
         uid: widget.user.uid,
         name: _nameController.text.trim(),
         bio: _bioController.text.trim(),
       );
 
-      // Step 3: เปลี่ยนหน้าไปยัง home
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => HomePage()),
@@ -108,7 +85,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Error saving profile: $e"),
+          content: Text("Error saving profile: $e", style: GoogleFonts.poppins()),
           backgroundColor: Colors.red,
         ),
       );
@@ -122,13 +99,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     return Scaffold(
       backgroundColor: AppTheme.creamColor,
       appBar: AppBar(
-        title: const Text(
-          "Profile Setup",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: Text("Profile Setup", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: AppTheme.navyColor,
         elevation: 0,
       ),
@@ -146,10 +117,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                       decoration: BoxDecoration(
                         color: AppTheme.tealColor.withOpacity(0.3),
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppTheme.tealColor,
-                          width: 2,
-                        ),
+                        border: Border.all(color: AppTheme.tealColor, width: 2),
                       ),
                       child: _imageBytes != null
                           ? ClipRRect(
@@ -164,14 +132,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                           : Container(
                               width: 150,
                               height: 150,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.person,
-                                size: 80,
-                                color: AppTheme.navyColor,
-                              ),
+                              decoration: const BoxDecoration(shape: BoxShape.circle),
+                              child: const Icon(Icons.person, size: 80, color: AppTheme.navyColor),
                             ),
                     ),
                     Positioned(
@@ -184,16 +146,9 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                           decoration: BoxDecoration(
                             color: AppTheme.lightGreenColor,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppTheme.creamColor,
-                              width: 2,
-                            ),
+                            border: Border.all(color: AppTheme.creamColor, width: 2),
                           ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                            size: 24,
-                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 24),
                         ),
                       ),
                     ),
@@ -217,20 +172,14 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Personal Information",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.navyColor,
-                      ),
-                    ),
+                    Text("Personal Information",
+                        style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.navyColor)),
                     const SizedBox(height: 20),
                     TextField(
                       controller: _nameController,
                       decoration: InputDecoration(
                         labelText: "Display Name",
-                        labelStyle: TextStyle(color: AppTheme.navyColor.withOpacity(0.6)),
+                        labelStyle: GoogleFonts.poppins(color: AppTheme.navyColor.withOpacity(0.6)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: AppTheme.tealColor, width: 2),
@@ -250,9 +199,9 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                       maxLines: 3,
                       decoration: InputDecoration(
                         labelText: "About You",
-                        labelStyle: TextStyle(color: AppTheme.navyColor.withOpacity(0.6)),
+                        labelStyle: GoogleFonts.poppins(color: AppTheme.navyColor.withOpacity(0.6)),
                         hintText: "Write a short description about yourself",
-                        hintStyle: TextStyle(color: AppTheme.navyColor.withOpacity(0.4)),
+                        hintStyle: GoogleFonts.poppins(color: AppTheme.navyColor.withOpacity(0.4)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: AppTheme.tealColor, width: 2),
@@ -276,9 +225,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                   backgroundColor: AppTheme.tealColor,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 40),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   elevation: 5,
                   shadowColor: AppTheme.tealColor.withOpacity(0.5),
                   minimumSize: const Size(double.infinity, 55),
@@ -292,13 +239,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text(
-                        "Save Profile",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                    : Text("Save Profile",
+                        style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ],
           ),

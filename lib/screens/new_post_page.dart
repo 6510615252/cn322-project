@@ -1,20 +1,20 @@
+// new_post_page.dart (แก้ไขแล้วให้เข้ากับธีม LoginPage)
 import 'dart:typed_data';
 import 'dart:io' if (dart.library.html) 'dart:html' as html;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:outstragram/services/postService.dart';
 import 'package:outstragram/services/userService.dart';
-import 'package:outstragram/screens/home_page.dart';
 import 'package:outstragram/widgets/manage_close_friends_button.dart';
 import 'package:outstragram/widgets/widget_tree.dart';
 
-// ธีมสีที่กำหนด
 class AppTheme {
-  static const Color creamColor = Color(0xFFF5F0DC);
-  static const Color navyColor = Color(0xFF363B5C);
-  static const Color tealColor = Color(0xFF8BB3A8);
+  static const Color creamColor = Color(0xFFFDFCFB);
+  static const Color navyColor = Color(0xFF607D8B);
+  static const Color tealColor = Color(0xFF80CBC4);
   static const Color lightGreenColor = Color(0xFFB4DBA0);
 }
 
@@ -155,9 +155,15 @@ class _NewPostPageState extends State<NewPostPage> {
     return Scaffold(
       backgroundColor: AppTheme.creamColor,
       appBar: AppBar(
-        title: const Text("Create New Post"),
+        title: Text(
+          "Create New Post",
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: AppTheme.navyColor,
-        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
@@ -167,16 +173,18 @@ class _NewPostPageState extends State<NewPostPage> {
                 context: context,
                 builder: (context) => AlertDialog(
                   backgroundColor: AppTheme.creamColor,
-                  title: const Text("Post Privacy"),
-                  content: const Text(
-                      "Everyone: All users can see your post.\n\nClose Friends: Only users you've added as close friends can see your post."),
+                  title: Text("Post Privacy",
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  content: Text(
+                    "Everyone: All users can see your post.\n\nClose Friends: Only users you've added as close friends can see your post.",
+                    style: GoogleFonts.poppins(),
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.navyColor,
-                      ),
-                      child: const Text("Got it"),
+                          foregroundColor: AppTheme.navyColor),
+                      child: Text("Got it", style: GoogleFonts.poppins()),
                     ),
                   ],
                 ),
@@ -186,66 +194,34 @@ class _NewPostPageState extends State<NewPostPage> {
         ],
       ),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: AppTheme.navyColor,
-              ),
-            )
+          ? Center(child: CircularProgressIndicator(color: AppTheme.navyColor))
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Image Section
+                    // Image Picker Section
                     Card(
                       elevation: 2,
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
+                          borderRadius: BorderRadius.circular(15)),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
-                            Text(
-                              "Post Image",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.navyColor,
-                              ),
-                            ),
+                            Text("Post Image",
+                                style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.navyColor)),
                             const SizedBox(height: 16),
                             if (_imageBytes != null)
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          AppTheme.navyColor.withOpacity(0.2),
-                                      blurRadius: 5,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(15),
-                                  child: kIsWeb
-                                      ? Image.memory(
-                                          _imageBytes!,
-                                          width: 250,
-                                          height: 250,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.memory(
-                                          _imageBytes!,
-                                          width: 250,
-                                          height: 250,
-                                          fit: BoxFit.cover,
-                                        ),
-                                ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Image.memory(_imageBytes!,
+                                    height: 250, width: 250, fit: BoxFit.cover),
                               ),
                             const SizedBox(height: 16),
                             ElevatedButton.icon(
@@ -253,24 +229,24 @@ class _NewPostPageState extends State<NewPostPage> {
                               icon: Icon(_imageBytes == null
                                   ? Icons.add_photo_alternate
                                   : Icons.edit),
-                              label: Text(_imageBytes == null
-                                  ? "Select Image"
-                                  : "Change Image"),
+                              label: Text(
+                                  _imageBytes == null
+                                      ? "Select Image"
+                                      : "Change Image",
+                                  style: GoogleFonts.poppins()),
                               style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 30, vertical: 12),
                                 foregroundColor: Colors.white,
                                 backgroundColor: AppTheme.tealColor,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
+                                    borderRadius: BorderRadius.circular(30)),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
 
                     // Caption Section
@@ -278,41 +254,35 @@ class _NewPostPageState extends State<NewPostPage> {
                       elevation: 2,
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
+                          borderRadius: BorderRadius.circular(15)),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "Caption",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.navyColor,
-                              ),
-                            ),
+                            Text("Caption",
+                                style: GoogleFonts.poppins(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.navyColor)),
                             const SizedBox(height: 10),
                             TextField(
                               controller: _captionController,
                               decoration: InputDecoration(
                                 hintText: "What's on your mind?",
+                                hintStyle: GoogleFonts.poppins(),
+                                filled: true,
+                                fillColor: AppTheme.creamColor.withOpacity(0.5),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                    color: AppTheme.tealColor,
-                                  ),
+                                  borderSide:
+                                      BorderSide(color: AppTheme.tealColor),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(10),
                                   borderSide: BorderSide(
-                                    color: AppTheme.tealColor,
-                                    width: 2,
-                                  ),
+                                      color: AppTheme.tealColor, width: 2),
                                 ),
-                                filled: true,
-                                fillColor: AppTheme.creamColor.withOpacity(0.5),
                               ),
                               maxLines: 3,
                             ),
@@ -320,7 +290,6 @@ class _NewPostPageState extends State<NewPostPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
 
                     // Privacy Section
@@ -328,10 +297,9 @@ class _NewPostPageState extends State<NewPostPage> {
                       elevation: 2,
                       color: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
+                          borderRadius: BorderRadius.circular(15)),
                       child: Padding(
-                        padding: const EdgeInsets.all(16.0),
+                        padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -340,14 +308,11 @@ class _NewPostPageState extends State<NewPostPage> {
                                 Icon(Icons.visibility,
                                     color: AppTheme.tealColor),
                                 const SizedBox(width: 10),
-                                Text(
-                                  "Privacy Settings",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.navyColor,
-                                  ),
-                                ),
+                                Text("Privacy Settings",
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.navyColor)),
                               ],
                             ),
                             const SizedBox(height: 16),
@@ -355,54 +320,23 @@ class _NewPostPageState extends State<NewPostPage> {
                               children: [
                                 Expanded(
                                   child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _isPrivate = false; // Set to Everyone
-                                      });
-                                    },
+                                    onTap: () =>
+                                        setState(() => _isPrivate = false),
                                     child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 15),
                                       decoration: BoxDecoration(
                                         color: !_isPrivate
                                             ? AppTheme.navyColor
                                             : Colors.grey.shade300,
                                         borderRadius: BorderRadius.circular(12),
-                                        boxShadow: !_isPrivate
-                                            ? [
-                                                BoxShadow(
-                                                  color: AppTheme.navyColor
-                                                      .withOpacity(0.3),
-                                                  spreadRadius: 1,
-                                                  blurRadius: 5,
-                                                  offset: Offset(0, 2),
-                                                ),
-                                              ]
-                                            : null,
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 15),
                                       child: Center(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.public,
-                                              color: !_isPrivate
-                                                  ? Colors.white
-                                                  : Colors.black54,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              "Everyone",
-                                              style: TextStyle(
+                                        child: Text("Everyone",
+                                            style: GoogleFonts.poppins(
                                                 color: !_isPrivate
                                                     ? Colors.white
-                                                    : Colors.black54,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                                    : Colors.black54)),
                                       ),
                                     ),
                                   ),
@@ -410,56 +344,23 @@ class _NewPostPageState extends State<NewPostPage> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _isPrivate =
-                                            true; // Set to Close Friends
-                                      });
-                                    },
+                                    onTap: () =>
+                                        setState(() => _isPrivate = true),
                                     child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 15),
                                       decoration: BoxDecoration(
                                         color: _isPrivate
                                             ? AppTheme.lightGreenColor
                                             : Colors.grey.shade300,
                                         borderRadius: BorderRadius.circular(12),
-                                        boxShadow: _isPrivate
-                                            ? [
-                                                BoxShadow(
-                                                  color: AppTheme
-                                                      .lightGreenColor
-                                                      .withOpacity(0.3),
-                                                  spreadRadius: 1,
-                                                  blurRadius: 5,
-                                                  offset: Offset(0, 2),
-                                                ),
-                                              ]
-                                            : null,
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 15),
                                       child: Center(
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.group,
-                                              color: _isPrivate
-                                                  ? AppTheme.navyColor
-                                                  : Colors.black54,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              "Close Friends",
-                                              style: TextStyle(
+                                        child: Text("Close Friends",
+                                            style: GoogleFonts.poppins(
                                                 color: _isPrivate
                                                     ? AppTheme.navyColor
-                                                    : Colors.black54,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                                    : Colors.black54)),
                                       ),
                                     ),
                                   ),
@@ -468,62 +369,38 @@ class _NewPostPageState extends State<NewPostPage> {
                             ),
                             const SizedBox(height: 16),
                             Container(
-                              padding: EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
                                 color: _isPrivate
                                     ? AppTheme.lightGreenColor.withOpacity(0.2)
                                     : AppTheme.navyColor.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: _isPrivate
-                                      ? AppTheme.lightGreenColor
-                                      : AppTheme.navyColor.withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _isPrivate
-                                        ? Icons.check_circle
-                                        : Icons.info,
                                     color: _isPrivate
                                         ? AppTheme.lightGreenColor
-                                        : AppTheme.navyColor,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      _isPrivate
-                                          ? _closeFriends.isNotEmpty
-                                              ? "Only your close friends will see this post (${_closeFriends.toSet().length} friends)"
-                                              : "Only your close friends will see this post. You haven't added any close friends yet."
-                                          : "Everyone will be able to see this post",
-                                      style: TextStyle(
-                                        color: _isPrivate
-                                            ? AppTheme.navyColor
-                                            : AppTheme.navyColor,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                        : AppTheme.navyColor.withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                _isPrivate
+                                    ? "Only your close friends will see this post (${_closeFriends.length})"
+                                    : "Everyone will be able to see this post",
+                                style: GoogleFonts.poppins(
+                                    color: AppTheme.navyColor),
                               ),
                             ),
                             if (_isPrivate) ...[
                               const SizedBox(height: 8),
                               SizedBox(
-                                width: double.infinity,
-                                child: ManageCloseFriendsButton(),
-                              ),
+                                  width: double.infinity,
+                                  child: ManageCloseFriendsButton()),
                             ]
                           ],
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 30),
 
-                    // Create Post Button
+                    // Submit Button
                     SizedBox(
                       height: 50,
                       child: ElevatedButton(
@@ -533,8 +410,7 @@ class _NewPostPageState extends State<NewPostPage> {
                           foregroundColor: Colors.white,
                           elevation: 3,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                              borderRadius: BorderRadius.circular(12)),
                           disabledBackgroundColor:
                               AppTheme.navyColor.withOpacity(0.5),
                         ),
@@ -543,16 +419,13 @@ class _NewPostPageState extends State<NewPostPage> {
                                 color: Colors.white)
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(Icons.post_add, size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Create Post",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                children: [
+                                  const Icon(Icons.post_add, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text("Create Post",
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold)),
                                 ],
                               ),
                       ),

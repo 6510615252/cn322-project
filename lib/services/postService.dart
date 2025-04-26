@@ -107,6 +107,7 @@ class PostService {
           'ownerId': currentUid,
           'pic': 'secret_post_pic/$picName',
           'context': context,
+          'isPrivate': true,
           'timestamp': Timestamp.fromDate(DateTime.now())
         }, SetOptions(merge: true));
       } else {

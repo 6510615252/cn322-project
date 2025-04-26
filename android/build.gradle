@@ -5,6 +5,22 @@ allprojects {
     }
 }
 
+defaultConfig {
+    compileSdkVersion 33
+    minSdkVersion 21
+    targetSdkVersion 33
+    versionCode 1
+    versionName "1.0"
+}
+
+buildTypes {
+  release {
+    minifyEnabled true
+    shrinkResources true
+    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+  }
+}
+
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

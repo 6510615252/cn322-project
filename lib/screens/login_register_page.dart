@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/authService.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,7 +20,9 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> signInWithEmailAndPassword() async {
     try {
       await Authservice().signInWithEmailAndPassword(
-          email: _controllerEmail.text, password: _controllerPassword.text);
+        email: _controllerEmail.text,
+        password: _controllerPassword.text,
+      );
     } on FirebaseAuthException catch (e) {
       setState(() {
         errorMessage = e.message;
@@ -40,7 +42,6 @@ class _LoginPageState extends State<LoginPage> {
         email: _controllerEmail.text,
         password: _controllerPassword.text,
       );
-      // ถ้าสำเร็จ ให้เคลียร์ error message
       setState(() {
         errorMessage = '';
       });
@@ -60,47 +61,43 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Widget _title() {
-    return const Text("Firebase Auth");
-  }
-
   Widget _entryField(String title, TextEditingController controller) {
     return TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: title,
-          labelStyle: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-          filled: true,
-          fillColor: Colors.white,
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Color(0xFF8AB2A6), width: 1.5),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Color(0xFF8AB2A6), width: 2),
-          ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      controller: controller,
+      obscureText: title.toLowerCase() == 'password',
+      decoration: InputDecoration(
+        prefixIcon: title.toLowerCase() == 'email'
+            ? const Icon(Icons.email_outlined)
+            : const Icon(Icons.lock_outline),
+        labelText: title,
+        labelStyle: GoogleFonts.poppins(
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
         ),
-        obscureText: title.toLowerCase() == 'password');
+        filled: true,
+        fillColor: Colors.white,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF80CBC4), width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+    );
   }
 
   Widget _errorMessage() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 6),
-      child: Text(
-        errorMessage == '' ? '' : 'Error: $errorMessage',
-        style: TextStyle(
-          color: Colors.red,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-        textAlign: TextAlign.center,
+    return Text(
+      errorMessage == '' ? '' : 'Error: $errorMessage',
+      style: GoogleFonts.poppins(
+        color: Colors.red,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
       ),
+      textAlign: TextAlign.center,
     );
   }
 
@@ -109,21 +106,20 @@ class _LoginPageState extends State<LoginPage> {
       onPressed:
           isLogin ? signInWithEmailAndPassword : createUserWithEmailAndPassword,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFF8AB2A6),
-        foregroundColor: Colors.white,
-        elevation: 3,
-        shadowColor: Color(0x668AB2A6),
-        padding: EdgeInsets.symmetric(vertical: 16),
+        backgroundColor: const Color(0xFF80CBC4),
+        elevation: 5,
+        padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       child: Text(
         isLogin ? "Login" : "Register",
-        style: TextStyle(
+        style: GoogleFonts.poppins(
           fontWeight: FontWeight.bold,
           fontSize: 16,
-          letterSpacing: 0.8,
+          letterSpacing: 1,
+          color: Colors.white,
         ),
       ),
     );
@@ -131,21 +127,21 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _googleSignInButton() {
     return ElevatedButton.icon(
-      icon: Icon(Icons.login, color: Colors.white, size: 20),
-      label: Text("Sign in with Google",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          )),
+      icon: const Icon(Icons.login, color: Colors.white, size: 20),
+      label: Text(
+        "Sign in with Google",
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: Colors.white,
+        ),
+      ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.redAccent,
         elevation: 3,
-        shadowColor: Colors.redAccent.withOpacity(0.4),
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       onPressed: signInWithGoogle,
@@ -157,24 +153,14 @@ class _LoginPageState extends State<LoginPage> {
       onPressed: () {
         setState(() {
           isLogin = !isLogin;
-          // เคลียร์ค่า error message เมื่อสลับโหมด
           errorMessage = '';
         });
       },
-      style: TextButton.styleFrom(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black87,
-        padding: EdgeInsets.symmetric(vertical: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Color(0xFF8AB2A6), width: 1.5),
-        ),
-      ),
       child: Text(
         isLogin ? "Register instead" : "Login instead",
-        style: TextStyle(
+        style: GoogleFonts.poppins(
           fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          color: const Color(0xFF607D8B),
           fontSize: 15,
         ),
       ),
@@ -184,38 +170,36 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 248, 248, 248),
+      backgroundColor: const Color.fromARGB(255, 191, 222, 212),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Card(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              elevation: 10,
-              shadowColor: Colors.black26,
-              color: Color(0xFFF6F1DE),
+                  borderRadius: BorderRadius.circular(30)),
+              elevation: 8,
+              color: const Color(0xFFFDFCFB),
               child: Padding(
-                padding: const EdgeInsets.all(30.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFF8AB2A6).withOpacity(0.2),
-                      ),
-                      child: Icon(
-                        Icons.photo_camera,
-                        size: 50,
-                        color: Color(0xFF8AB2A6),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          'assets/appicon.png',
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
                     Text(
                       "OUTRAGRAM",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 34,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 2,
@@ -227,9 +211,9 @@ class _LoginPageState extends State<LoginPage> {
                       isLogin
                           ? "Login to your account"
                           : "Create a new account",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                         color: Colors.black54,
                       ),
                     ),
@@ -240,41 +224,28 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 16),
                     _errorMessage(),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _submitButton(),
-                    ),
+                    SizedBox(width: double.infinity, child: _submitButton()),
                     const SizedBox(height: 16),
                     Row(
-                      children: <Widget>[
-                        Expanded(
-                            child:
-                                Divider(thickness: 1.5, color: Colors.black38)),
+                      children: [
+                        const Expanded(child: Divider(thickness: 1.2)),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
                             "or",
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               color: Colors.black54,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
-                        Expanded(
-                            child:
-                                Divider(thickness: 1.5, color: Colors.black38)),
+                        const Expanded(child: Divider(thickness: 1.2)),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _googleSignInButton(),
-                    ),
+                    SizedBox(width: double.infinity, child: _googleSignInButton()),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: _loginOrRegisterButton(),
-                    )
+                    _loginOrRegisterButton(),
                   ],
                 ),
               ),
