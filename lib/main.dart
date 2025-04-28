@@ -15,6 +15,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load();
   await Firebase.initializeApp(
+    name : "CN322",
     options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(

@@ -1,2 +1,0 @@
-E:/DATA/CN322/cn322-project/android/app/.cxx/RelWithDebInfo/t439l646/x86/CMakeFiles/edit_cache.dir
-E:/DATA/CN322/cn322-project/android/app/.cxx/RelWithDebInfo/t439l646/x86/CMakeFiles/rebuild_cache.dir
