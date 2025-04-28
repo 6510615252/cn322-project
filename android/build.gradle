@@ -1,3 +1,17 @@
+// android/build.gradle
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.2'
+        classpath 'com.google.gms:google-services:4.4.0' 
+    
+}
+}
+
 allprojects {
     repositories {
         google()
@@ -5,34 +19,16 @@ allprojects {
     }
 }
 
-defaultConfig {
-    compileSdkVersion 33
-    minSdkVersion 21
-    targetSdkVersion 33
-    versionCode 1
-    versionName "1.0"
-}
-
-buildTypes {
-  release {
-    minifyEnabled true
-    shrinkResources true
-    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-  }
-}
-
 rootProject.buildDir = "../build"
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
-}
-
-dependencies {
-    classpath 'com.google.gms:google-services:latest_version'
 }
