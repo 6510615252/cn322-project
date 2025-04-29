@@ -24,12 +24,12 @@ OUTRAGLAM คือแอปพลิเคชันโซเชียลมี�
 
 
 # 📌 เอกสารรายละเอียด
-[📝 Documentaion](https://tuipied-my.sharepoint.com/:w:/g/personal/kasidit_kor_dome_tu_ac_th/EVRXk7cs3xdKm6Vv7Tvx494BJ9rr_BtpZ_BdA-TyUErlhA?e=4Qymqo).
-[📄 Slide](https://www.canva.com/design/DAGgsv4TWpc/gEaNXvXkX18d2_FYh27pag/edit?utm_content=DAGgsv4TWpc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton).
+- [📝 Documentaion](https://tuipied-my.sharepoint.com/:w:/g/personal/kasidit_kor_dome_tu_ac_th/EVRXk7cs3xdKm6Vv7Tvx494BJ9rr_BtpZ_BdA-TyUErlhA?e=4Qymqo)
+- [📄 Slide](https://www.canva.com/design/DAGgsv4TWpc/gEaNXvXkX18d2_FYh27pag/edit?utm_content=DAGgsv4TWpc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 
 # 📲 Download Application
-[📥 ดาวน์โหลดแอป OUTRAGLAM (APK)](https://drive.google.com/file/d/1s5PWluIYUjqMJtB4q-TpfUHFgJ9OO7Jg/view?usp=sharing)
+- [📥 ดาวน์โหลดแอป OUTRAGLAM (APK)](https://drive.google.com/file/d/1s5PWluIYUjqMJtB4q-TpfUHFgJ9OO7Jg/view?usp=sharing)
 
 
 ## 👨‍💻 สมาชิกในทีม
